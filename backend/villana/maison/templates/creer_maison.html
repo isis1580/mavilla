@@ -1,0 +1,11 @@
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ maison_form.as_p }}
+    <label for="images">Ajouter des photos :</label>
+    <input type="file" name="images" multiple>
+    
+    <label for="fichiers">Ajouter des vidéos :</label>
+    <input type="file" name="fichiers" multiple>
+
+    <button type="submit">Poster la maison</button>
+</form>

@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "VillanaApp",
+    "slug": "VillanaApp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/villanaicon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/villanaicon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Cette application a besoin d'accéder à la caméra pour prendre des photos."
+      }
+    },
+    "android": {
+      "permissions": [
+        "CAMERA"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/villanaicon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.isis227.VillanaApp"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8381b1db-d2c5-4369-ac13-c4d72d882403"
+      }
+    }
+  }
+}
