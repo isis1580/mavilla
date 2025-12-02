@@ -84,7 +84,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'villana.wsgi.application'
 
+# Configuration pour Render
+DEBUG = 'RENDER' not in os.environ
 
+if 'RENDER' in os.environ:
+    # Inclure l'hostname de Render
+    ALLOWED_HOSTS.append('https://your-app-name.onrender.com')
+    ALLOWED_HOSTS.append('your-app-name.onrender.com')
+    
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
