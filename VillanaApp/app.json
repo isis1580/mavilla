@@ -19,6 +19,7 @@
     },
     "android": {
       "permissions": [
+        "CAMERA",
         "CAMERA"
       ],
       "adaptiveIcon": {
@@ -38,6 +39,12 @@
       "eas": {
         "projectId": "8381b1db-d2c5-4369-ac13-c4d72d882403"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8381b1db-d2c5-4369-ac13-c4d72d882403"
     }
   }
 }
