@@ -146,6 +146,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Ne pas ajouter STATICFILES_DIRS si tes fichiers sont dans app/static (AppDirectoriesFinder les trouve)
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "media")]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
