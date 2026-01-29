@@ -1,6 +1,12 @@
 services:
   - type: web
-    name: my-django-app
+    name: villana
     env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn monprojet.wsgi"
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+    startCommand: "gunicorn villana.wsgi:application"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
