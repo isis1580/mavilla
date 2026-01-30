@@ -52,7 +52,10 @@ class UserLoginSerializer(serializers.Serializer):
 def absolute_url(request, filefield):
     if not filefield:
         return None
-    return request.build_absolute_uri(filefield.url)
+    try:
+        return request.build_absolute_uri(filefield.url)
+    except:
+        return None
 
 # =========================
 # PHOTOS & VIDEOS
@@ -65,9 +68,7 @@ class PhotoSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         request = self.context.get('request')
-        return {
-            'photos': absolute_url(request, instance.photos)
-        }
+        return {'photos': absolute_url(request, instance.photos)}
 
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -76,9 +77,7 @@ class VideoSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         request = self.context.get('request')
-        return {
-            'video': absolute_url(request, instance.video)
-        }
+        return {'video': absolute_url(request, instance.video)}
 
 # =========================
 # MAISONS
@@ -95,13 +94,10 @@ class MaisonSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context['request']
         maison = Maison.objects.create(**validated_data)
-
         for photo in request.FILES.getlist('photos'):
             Photo.objects.create(maison=maison, photos=photo)
-
         for video in request.FILES.getlist('videos'):
             Video.objects.create(maison=maison, video=video)
-
         return maison
 
 # =========================
@@ -130,9 +126,7 @@ class ParcellePhotoSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         request = self.context.get('request')
-        return {
-            'photos': absolute_url(request, instance.photos)
-        }
+        return {'photos': absolute_url(request, instance.photos)}
 
 class ParcelleSerializer(serializers.ModelSerializer):
     photos = ParcellePhotoSerializer(many=True, read_only=True)
@@ -144,10 +138,8 @@ class ParcelleSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context['request']
         parcelle = Parcelle.objects.create(**validated_data)
-
         for photo in request.FILES.getlist('photos'):
             ParcellePhoto.objects.create(parcelle=parcelle, photos=photo)
-
         return parcelle
 
 # =========================
@@ -161,9 +153,7 @@ class HotelPhotoSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         request = self.context.get('request')
-        return {
-            'photos': absolute_url(request, instance.photos)
-        }
+        return {'photos': absolute_url(request, instance.photos)}
 
 class HotelSerializer(serializers.ModelSerializer):
     photos = HotelPhotoSerializer(many=True, read_only=True)
@@ -175,10 +165,8 @@ class HotelSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context['request']
         hotel = Hotel.objects.create(**validated_data)
-
         for photo in request.FILES.getlist('photos'):
             HotelPhoto.objects.create(hotel=hotel, photos=photo)
-
         return hotel
 
 # =========================
