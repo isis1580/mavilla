@@ -1,8 +1,11 @@
 from rest_framework import serializers
 from .models import *
-from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 
-#inscription
+# =========================
+# USERS
+# =========================
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
 
@@ -17,8 +20,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             email=validated_data.get('email'),
             password=validated_data['password']
         )
-#connexion
-from rest_framework_simplejwt.tokens import RefreshToken
 
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()  # Peut être email, numéro ou username
@@ -33,7 +34,6 @@ class UserLoginSerializer(serializers.Serializer):
         if not user:
             raise serializers.ValidationError("Identifiants invalides.")
 
-        # Génère des jetons JWT
         refresh = RefreshToken.for_user(user)
         return {
             'refresh': str(refresh),
@@ -45,7 +45,10 @@ class UserLoginSerializer(serializers.Serializer):
             }
         }
 
- 
+# =========================
+# PHOTOS & VIDEOS
+# =========================
+
 class PhotoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Photo
@@ -53,18 +56,22 @@ class PhotoSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        request = self.context.get('request')  # Récupérer la requête
-        if instance.photos:  # Vérifiez si l'instance a une photo
-            representation['photos'] = request.build_absolute_uri(instance.photos.url)  # Renvoie l'URL complète
-        else:
-            representation['photos'] = None  # Ou une valeur par défaut
+        representation['photos'] = instance.photos.url if instance.photos else None
         return representation
-    
 
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
         fields = ['video']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['video'] = instance.video.url if instance.video else None
+        return representation
+
+# =========================
+# MAISONS
+# =========================
 
 class MaisonSerializer(serializers.ModelSerializer):
     photos = PhotoSerializer(many=True, read_only=True)
@@ -87,22 +94,40 @@ class MaisonSerializer(serializers.ModelSerializer):
 
         return maison
 
+# =========================
+# PUBLICITES
+# =========================
+
 class PubliciteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Publicite
-        fields = '__all__'  # Inclut tous les champs du modèle
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['photos'] = instance.photos.url if instance.photos else None
+        return representation
+
+# =========================
+# PARCELLES
+# =========================
 
 class ParcellePhotoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ParcellePhoto
-        fields = ['photos']  # Incluez les champs nécessaires
+        fields = ['photos']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['photos'] = instance.photos.url if instance.photos else None
+        return representation
 
 class ParcelleSerializer(serializers.ModelSerializer):
     photos = ParcellePhotoSerializer(many=True, read_only=True)
 
     class Meta:
         model = Parcelle
-        fields = '__all__'  # Inclut tous les champs
+        fields = '__all__'
 
     def create(self, validated_data):
         parcelle = Parcelle.objects.create(**validated_data)
@@ -113,17 +138,26 @@ class ParcelleSerializer(serializers.ModelSerializer):
 
         return parcelle
 
+# =========================
+# HOTELS
+# =========================
+
 class HotelPhotoSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelPhoto
-        fields = ['photos']  # Incluez les champs nécessaires
+        fields = ['photos']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['photos'] = instance.photos.url if instance.photos else None
+        return representation
 
 class HotelSerializer(serializers.ModelSerializer):
     photos = HotelPhotoSerializer(many=True, read_only=True)
 
     class Meta:
         model = Hotel
-        fields = '__all__'  # Inclut tous les champs
+        fields = '__all__'
 
     def create(self, validated_data):
         hotel = Hotel.objects.create(**validated_data)
@@ -134,34 +168,9 @@ class HotelSerializer(serializers.ModelSerializer):
 
         return hotel
 
-
-class ParcellePhotoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ParcellePhoto
-        fields = ['photos']
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        request = self.context.get('request')
-        if instance.photos:
-            representation['photos'] = request.build_absolute_uri(instance.photos.url)
-        else:
-            representation['photos'] = None
-        return representation
-
-class HotelPhotoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HotelPhoto
-        fields = ['photos']
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        request = self.context.get('request')
-        if instance.photos:
-            representation['photos'] = request.build_absolute_uri(instance.photos.url)
-        else:
-            representation['photos'] = None
-        return representation
+# =========================
+# PAYS
+# =========================
 
 class PaysSerializer(serializers.ModelSerializer):
     class Meta:
@@ -170,9 +179,5 @@ class PaysSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        request = self.context.get('request')
-        if instance.drapeau:
-            representation['drapeau'] = request.build_absolute_uri(instance.drapeau.url)
-        else:
-            representation['drapeau'] = None
+        representation['drapeau'] = instance.drapeau.url if instance.drapeau else None
         return representation
