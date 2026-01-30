@@ -22,15 +22,15 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         )
 
 class UserLoginSerializer(serializers.Serializer):
-    username = serializers.CharField()  # Peut être email, numéro ou username
+    username = serializers.CharField()
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
 
     def validate(self, data):
         from django.contrib.auth import authenticate
-        username = data.get('username')
-        password = data.get('password')
-
-        user = authenticate(username=username, password=password)
+        user = authenticate(
+            username=data.get('username'),
+            password=data.get('password')
+        )
         if not user:
             raise serializers.ValidationError("Identifiants invalides.")
 
@@ -46,6 +46,15 @@ class UserLoginSerializer(serializers.Serializer):
         }
 
 # =========================
+# HELPERS
+# =========================
+
+def absolute_url(request, filefield):
+    if not filefield:
+        return None
+    return request.build_absolute_uri(filefield.url)
+
+# =========================
 # PHOTOS & VIDEOS
 # =========================
 
@@ -55,9 +64,10 @@ class PhotoSerializer(serializers.ModelSerializer):
         fields = ['photos']
 
     def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['photos'] = instance.photos.url if instance.photos else None
-        return representation
+        request = self.context.get('request')
+        return {
+            'photos': absolute_url(request, instance.photos)
+        }
 
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -65,9 +75,10 @@ class VideoSerializer(serializers.ModelSerializer):
         fields = ['video']
 
     def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['video'] = instance.video.url if instance.video else None
-        return representation
+        request = self.context.get('request')
+        return {
+            'video': absolute_url(request, instance.video)
+        }
 
 # =========================
 # MAISONS
@@ -82,15 +93,14 @@ class MaisonSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
+        request = self.context['request']
         maison = Maison.objects.create(**validated_data)
-        photos_data = self.context['request'].FILES.getlist('photos')
-        videos_data = self.context['request'].FILES.getlist('videos')
 
-        for photo_data in photos_data:
-            Photo.objects.create(maison=maison, photos=photo_data)
+        for photo in request.FILES.getlist('photos'):
+            Photo.objects.create(maison=maison, photos=photo)
 
-        for video_data in videos_data:
-            Video.objects.create(maison=maison, video=video_data)
+        for video in request.FILES.getlist('videos'):
+            Video.objects.create(maison=maison, video=video)
 
         return maison
 
@@ -104,9 +114,10 @@ class PubliciteSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['photos'] = instance.photos.url if instance.photos else None
-        return representation
+        request = self.context.get('request')
+        rep = super().to_representation(instance)
+        rep['photos'] = absolute_url(request, instance.photos)
+        return rep
 
 # =========================
 # PARCELLES
@@ -118,9 +129,10 @@ class ParcellePhotoSerializer(serializers.ModelSerializer):
         fields = ['photos']
 
     def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['photos'] = instance.photos.url if instance.photos else None
-        return representation
+        request = self.context.get('request')
+        return {
+            'photos': absolute_url(request, instance.photos)
+        }
 
 class ParcelleSerializer(serializers.ModelSerializer):
     photos = ParcellePhotoSerializer(many=True, read_only=True)
@@ -130,11 +142,11 @@ class ParcelleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
+        request = self.context['request']
         parcelle = Parcelle.objects.create(**validated_data)
-        photos_data = self.context['request'].FILES.getlist('photos')
 
-        for photo_data in photos_data:
-            ParcellePhoto.objects.create(parcelle=parcelle, photos=photo_data)
+        for photo in request.FILES.getlist('photos'):
+            ParcellePhoto.objects.create(parcelle=parcelle, photos=photo)
 
         return parcelle
 
@@ -148,9 +160,10 @@ class HotelPhotoSerializer(serializers.ModelSerializer):
         fields = ['photos']
 
     def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['photos'] = instance.photos.url if instance.photos else None
-        return representation
+        request = self.context.get('request')
+        return {
+            'photos': absolute_url(request, instance.photos)
+        }
 
 class HotelSerializer(serializers.ModelSerializer):
     photos = HotelPhotoSerializer(many=True, read_only=True)
@@ -160,11 +173,11 @@ class HotelSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
+        request = self.context['request']
         hotel = Hotel.objects.create(**validated_data)
-        photos_data = self.context['request'].FILES.getlist('photos')
 
-        for photo_data in photos_data:
-            HotelPhoto.objects.create(hotel=hotel, photos=photo_data)
+        for photo in request.FILES.getlist('photos'):
+            HotelPhoto.objects.create(hotel=hotel, photos=photo)
 
         return hotel
 
@@ -178,6 +191,7 @@ class PaysSerializer(serializers.ModelSerializer):
         fields = ['nom', 'code', 'drapeau']
 
     def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['drapeau'] = instance.drapeau.url if instance.drapeau else None
-        return representation
+        request = self.context.get('request')
+        rep = super().to_representation(instance)
+        rep['drapeau'] = absolute_url(request, instance.drapeau)
+        return rep
