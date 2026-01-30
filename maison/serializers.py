@@ -33,7 +33,6 @@ class UserLoginSerializer(serializers.Serializer):
         )
         if not user:
             raise serializers.ValidationError("Identifiants invalides.")
-
         refresh = RefreshToken.for_user(user)
         return {
             'refresh': str(refresh),
@@ -104,7 +103,18 @@ class MaisonSerializer(serializers.ModelSerializer):
 # PUBLICITES
 # =========================
 
+class PublicitePhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Publicite
+        fields = ['photos']
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        return {'photos': absolute_url(request, instance.photos)}
+
 class PubliciteSerializer(serializers.ModelSerializer):
+    photos = PublicitePhotoSerializer(read_only=True)
+
     class Meta:
         model = Publicite
         fields = '__all__'
@@ -112,7 +122,8 @@ class PubliciteSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         request = self.context.get('request')
         rep = super().to_representation(instance)
-        rep['photos'] = absolute_url(request, instance.photos)
+        if not rep.get('photos'):
+            rep['photos'] = None
         return rep
 
 # =========================
