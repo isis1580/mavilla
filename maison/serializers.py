@@ -111,19 +111,10 @@ class PubliciteSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         request = self.context.get('request')
         rep = super().to_representation(instance)
-
-        # Sécurisation de 'photos'
-        if hasattr(instance, 'photos') and instance.photos:
-            try:
-                rep['photos'] = request.build_absolute_uri(instance.photos.url)
-            except ValueError:
-                rep['photos'] = None
-            except Exception as e:
-                print("PubliciteSerializer error:", e)
-                rep['photos'] = None
+        if instance.photos and hasattr(instance.photos, 'url'):
+            rep['photos'] = absolute_url(request, instance.photos)
         else:
-            rep['photos'] = None
-
+            rep['photos'] = None  # ou URL de placeholder
         return rep
 
 

@@ -88,9 +88,11 @@ class Video(models.Model):
 
 
 class Publicite(models.Model):
-    titre = models.CharField(max_length=200) 
-    photos = models.ImageField(upload_to='publicites/')  
-    lien = models.URLField(max_length=200, blank=True)  
+    titre = models.CharField(max_length=255)
+    photos = models.ImageField(upload_to='publicites/', null=True, blank=True)
+    lien = models.URLField(blank=True, null=True)
+    # autres champs...
+  
     def __str__(self):
         return self.titre
 
