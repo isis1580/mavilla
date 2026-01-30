@@ -103,18 +103,7 @@ class MaisonSerializer(serializers.ModelSerializer):
 # PUBLICITES
 # =========================
 
-class PublicitePhotoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Publicite
-        fields = ['photos']
-
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        return {'photos': absolute_url(request, instance.photos)}
-
 class PubliciteSerializer(serializers.ModelSerializer):
-    photos = PublicitePhotoSerializer(read_only=True)
-
     class Meta:
         model = Publicite
         fields = '__all__'
@@ -122,8 +111,21 @@ class PubliciteSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         request = self.context.get('request')
         rep = super().to_representation(instance)
-        if not rep.get('photos'):
+
+        # Vérifie si 'photos' existe vraiment
+        try:
+            if instance.photos and hasattr(instance.photos, 'url'):
+                rep['photos'] = request.build_absolute_uri(instance.photos.url)
+            else:
+                rep['photos'] = None
+        except ValueError:
+            # Aucun fichier associé
             rep['photos'] = None
+        except Exception as e:
+            # Log erreur pour debug
+            print("PubliciteSerializer to_representation error:", e)
+            rep['photos'] = None
+
         return rep
 
 # =========================
