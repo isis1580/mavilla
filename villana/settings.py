@@ -8,7 +8,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 import dj_database_url
-
+import cloudinary
 # =========================
 # BASE DIRECTORY
 # =========================
@@ -44,6 +44,18 @@ INSTALLED_APPS = [
     'corsheaders',
     'maison',  # ton app personnalisée
 ]
+
+INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+cloudinary.config(
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key = os.getenv("CLOUDINARY_API_KEY"),
+    api_secret = os.getenv("CLOUDINARY_API_SECRET"),
+    secure = True
+)
+
 
 # =========================
 # MIDDLEWARE
@@ -128,7 +140,6 @@ STATICFILES_DIRS = [BASE_DIR / "media"]  # si tu mets tes fichiers ici
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
 # =========================
 # CORS
