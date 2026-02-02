@@ -98,11 +98,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'villana.wsgi.application'
 
 # =========================
-# DATABASE
+# DATABASE (PostgreSQL Render)
 # =========================
 DATABASES = {
     "default": dj_database_url.parse(
-        os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
+        os.environ.get(
+            "DATABASE_URL",
+            f"sqlite:///{BASE_DIR / 'db.sqlite3'}"  # fallback pour dev local
+        ),
+        conn_max_age=600,
+        ssl_require=True  # Render exige SSL
     )
 }
 
@@ -140,9 +145,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Plus besoin de STATICFILES_DIRS = [BASE_DIR / "media"] car tout est sur Cloudinary
-
-MEDIA_URL = '/media/'  # reste pour compatibilité, mais tout va sur Cloudinary
+MEDIA_URL = '/media/'  # pour compatibilité, tout va sur Cloudinary
 
 # =========================
 # CORS
@@ -154,24 +157,9 @@ CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if os.ge
 # =========================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# =========================
+# LOGGING
+# =========================
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
