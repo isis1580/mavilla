@@ -94,13 +94,52 @@ class HotelPhotoViewSet(viewsets.ModelViewSet):
 # =========================
 # Publicités
 # =========================
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from .models import Publicite
+from .serializers import PubliciteSerializer
+import traceback
+import logging
+
+logger = logging.getLogger(__name__)
+
 class PubliciteViewSet(viewsets.ModelViewSet):
     queryset = Publicite.objects.all()
     serializer_class = PubliciteSerializer
 
-    def get_serializer_context(self):
-        return {"request": self.request}
+    def list(self, request, *args, **kwargs):
+        try:
+            # On récupère toutes les publicités
+            queryset = self.get_queryset()
+            serializer = self.get_serializer(queryset, many=True, context={'request': request})
 
+            # On s'assure que chaque image est un lien absolu Cloudinary
+            data = []
+            for pub in serializer.data:
+                if pub.get('photos'):
+                    pub['photos'] = self.make_absolute_url(pub['photos'], request)
+                data.append(pub)
+
+            return Response(data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print("🔥 ERREUR PUBLICITES 🔥")
+            traceback.print_exc()  # Affiche la stack trace complète dans le terminal
+            logger.error(f"Erreur PubliciteViewSet: {e}", exc_info=True)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def make_absolute_url(self, url, request):
+        """
+        Transforme un chemin Cloudinary ou local en URL complète.
+        """
+        if not url:
+            return None
+        if url.startswith('http://') or url.startswith('https://'):
+            return url
+        if url.startswith('//'):
+            return 'https:' + url
+        slash = '' if url.startswith('/') else '/'
+        return request.build_absolute_uri(f"{slash}{url}")
 
 # =========================
 # Pays
