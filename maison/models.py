@@ -1,14 +1,12 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser 
-from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from django.db import models
-#pour mes utillisateur 
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from django.db import models
+from cloudinary.models import CloudinaryField
 
+# =========================
+# USER CUSTOM
+# =========================
 class UserManager(BaseUserManager):
-    def create_user(self, username, phone_number, email=None, password=None, **extra_fields):
+    def create_user(self, phone_number, username, email=None, password=None, **extra_fields):
         if not phone_number:
             raise ValueError("Le numéro de téléphone est requis.")
         if not username:
@@ -19,16 +17,15 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, phone_number, email=None, password=None, **extra_fields):
+    def create_superuser(self, phone_number, username, email=None, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-
         if not extra_fields.get('is_staff'):
             raise ValueError("Le superutilisateur doit avoir is_staff=True.")
         if not extra_fields.get('is_superuser'):
             raise ValueError("Le superutilisateur doit avoir is_superuser=True.")
+        return self.create_user(phone_number, username, email, password, **extra_fields)
 
-        return self.create_user(username, phone_number, email, password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=255)
@@ -38,20 +35,21 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'phone_number'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['username', 'email']
 
     objects = UserManager()
 
     def __str__(self):
-        return self.username 
+        return self.username
 
-
+# =========================
+# MAISONS
+# =========================
 class Maison(models.Model):
     TYPE_MAISON_CHOICES = [
         ('vente', 'À vendre'),
         ('location', 'À louer'),
     ]
-    
     type_maison = models.CharField(max_length=10, choices=TYPE_MAISON_CHOICES)
     description = models.TextField()
     prix = models.DecimalField(max_digits=100, decimal_places=2)
@@ -69,33 +67,34 @@ class Maison(models.Model):
     def __str__(self):
         return f'{self.type_maison} - {self.ville}'
 
-
-
-
 class Photo(models.Model):
     maison = models.ForeignKey(Maison, related_name='photos', on_delete=models.CASCADE)
-    photos = models.ImageField(upload_to='photos/')
+    photos = CloudinaryField('image', blank=True, null=True)
 
     def __str__(self):
         return f'Photo de {self.maison}'
 
 class Video(models.Model):
     maison = models.ForeignKey(Maison, related_name='videos', on_delete=models.CASCADE)
-    video = models.FileField(upload_to='videos/')
+    video = CloudinaryField('video', blank=True, null=True)
 
     def __str__(self):
         return f'Vidéo de {self.maison}'
 
-
+# =========================
+# PUBLICITES
+# =========================
 class Publicite(models.Model):
     titre = models.CharField(max_length=255)
-    photos = models.ImageField(upload_to='publicites/', null=True, blank=True)
+    photos = CloudinaryField('image', blank=True, null=True)
     lien = models.URLField(blank=True, null=True)
-    # autres champs...
-  
+
     def __str__(self):
         return self.titre
 
+# =========================
+# PARCELLES
+# =========================
 class Parcelle(models.Model):
     description = models.CharField(max_length=255)
     prix = models.DecimalField(max_digits=10, decimal_places=2)
@@ -108,26 +107,30 @@ class Parcelle(models.Model):
 
 class ParcellePhoto(models.Model):
     parcelle = models.ForeignKey(Parcelle, related_name='photos', on_delete=models.CASCADE)
-    photos = models.ImageField(upload_to='Parcelle/')
+    photos = CloudinaryField('image', blank=True, null=True)
 
+# =========================
+# HOTELS
+# =========================
 class Hotel(models.Model):
-    titre= models.CharField(max_length=255)
-    description = models.CharField(max_length=255)
+    titre = models.CharField(max_length=255)
+    description = models.TextField()
     date_creation = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.description
-    
+        return self.titre
+
 class HotelPhoto(models.Model):
-    hotel = models.ForeignKey(Hotel, related_name='photos', on_delete=models.CASCADE) 
-    photos = models.ImageField(upload_to='Hotel/')
+    hotel = models.ForeignKey(Hotel, related_name='photos', on_delete=models.CASCADE)
+    photos = CloudinaryField('image', blank=True, null=True)
 
-
+# =========================
+# PAYS
+# =========================
 class Pays(models.Model):
-    nom = models.CharField(max_length=100) 
-    code = models.CharField(max_length=10)  
-    drapeau = models.ImageField(upload_to='drapeaux/')  
+    nom = models.CharField(max_length=100)
+    code = models.CharField(max_length=10)
+    drapeau = CloudinaryField('image', blank=True, null=True)
 
     def __str__(self):
         return self.nom
-    

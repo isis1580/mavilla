@@ -1,42 +1,25 @@
-from django.views import *
-from rest_framework import generics
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from django.http import JsonResponse, HttpResponse
+from rest_framework.views import APIView
+
 from .models import *
-from django.http import HttpResponse
-
-from .forms import *
-from rest_framework.views import APIView
-from rest_framework import viewsets
-from rest_framework.response import Response
 from .serializers import *
-from django.http import JsonResponse
-
-import json
-from rest_framework.views import APIView
-from rest_framework.response import Response
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-
-
+# =========================
+# Home
+# =========================
 def home(request):
     return HttpResponse("Bienvenue sur Villana !")
-#inscription
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .serializers import UserRegistrationSerializer
 
+
+# =========================
+# Auth
+# =========================
 class UserRegistrationView(APIView):
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -51,80 +34,99 @@ class UserRegistrationView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-#connexion
 class UserLoginView(APIView):
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
             return Response(serializer.validated_data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class MaisonListView(APIView):
-    def get(self, request):
-        maisons = Maison.objects.all()
-        serializer = MaisonSerializer(maisons, many=True, context={'request': request})  # Passer le contexte
-        return Response(serializer.data)
+
+# =========================
+# Maisons
+# =========================
+class MaisonViewSet(viewsets.ModelViewSet):
+    queryset = Maison.objects.all()
+    serializer_class = MaisonSerializer
+
+    def get_serializer_context(self):
+        return {"request": self.request}
 
 
-def photo_list_view(request):
-    photos = list(Photo.objects.values())  # Récupère les photos
-    return JsonResponse(photos, safe=False)
+# =========================
+# Parcelles
+# =========================
+class ParcelleViewSet(viewsets.ModelViewSet):
+    queryset = Parcelle.objects.all()
+    serializer_class = ParcelleSerializer
 
-def video_list_view(request):
-    videos = list(Video.objects.values())  # Récupère les vidéos
-    return JsonResponse(videos, safe=False)
+    def get_serializer_context(self):
+        return {"request": self.request}
 
 
+class ParcellePhotoViewSet(viewsets.ModelViewSet):
+    queryset = ParcellePhoto.objects.all()
+    serializer_class = ParcellePhotoSerializer
+
+    def get_serializer_context(self):
+        return {"request": self.request}
+
+
+# =========================
+# Hotels
+# =========================
+class HotelViewSet(viewsets.ModelViewSet):
+    queryset = Hotel.objects.all()
+    serializer_class = HotelSerializer
+
+    def get_serializer_context(self):
+        return {"request": self.request}
+
+
+class HotelPhotoViewSet(viewsets.ModelViewSet):
+    queryset = HotelPhoto.objects.all()
+    serializer_class = HotelPhotoSerializer
+
+    def get_serializer_context(self):
+        return {"request": self.request}
+
+
+# =========================
+# Publicités
+# =========================
 class PubliciteViewSet(viewsets.ModelViewSet):
     queryset = Publicite.objects.all()
     serializer_class = PubliciteSerializer
 
+    def get_serializer_context(self):
+        return {"request": self.request}
 
+
+# =========================
+# Pays
+# =========================
 def liste_pays(request):
-    pays = list(pays.objects.all().values('nom', 'code', 'drapeau'))
-    return JsonResponse(pays, safe=False)
+    pays_list = list(Pays.objects.all().values('nom', 'code', 'drapeau'))
+    return JsonResponse(pays_list, safe=False)
+
 
 def detect_country(request):
-    code = request.GET.get('code')  # Récupérer le code du pays depuis la requête
+    code = request.GET.get('code')
     try:
         pays = Pays.objects.get(code=code)
         return JsonResponse({'nom': pays.nom, 'code': pays.code, 'drapeau': pays.drapeau.url})
     except Pays.DoesNotExist:
         return JsonResponse({'error': 'Pays non trouvé'}, status=404)
-    
-class ParcelleList(generics.ListCreateAPIView):
-    queryset = Parcelle.objects.all()
-    serializer_class = ParcelleSerializer
-
-class ParcelleDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Parcelle.objects.all()
-    serializer_class = ParcelleSerializer
-
-class ParcellePhotoList(generics.ListCreateAPIView):
-    queryset = ParcellePhoto.objects.all()
-    serializer_class = ParcellePhotoSerializer
-
-class ParcellePhotoDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = ParcellePhoto.objects.all()
-    serializer_class = ParcellePhotoSerializer
-
-class HotelList(generics.ListCreateAPIView):
-    queryset = Hotel.objects.all()
-    serializer_class = HotelSerializer
-
-class HotelDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Hotel.objects.all()
-    serializer_class = HotelSerializer
-
-class HotelPhotoList(generics.ListCreateAPIView):
-    queryset = HotelPhoto.objects.all()
-    serializer_class = HotelPhotoSerializer
-
-class HotelPhotoDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = HotelPhoto.objects.all()
-    serializer_class = HotelPhotoSerializer
 
 
+# =========================
+# Media debug
+# =========================
+def photo_list_view(request):
+    photos = list(Photo.objects.values())
+    return JsonResponse(photos, safe=False)
 
 
-
+def video_list_view(request):
+    videos = list(Video.objects.values())
+    return JsonResponse(videos, safe=False)

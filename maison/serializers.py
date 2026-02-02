@@ -5,7 +5,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 # =========================
 # USERS
 # =========================
-
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
 
@@ -15,8 +14,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return User.objects.create_user(
-            username=validated_data['username'],
             phone_number=validated_data['phone_number'],
+            username=validated_data['username'],
             email=validated_data.get('email'),
             password=validated_data['password']
         )
@@ -47,41 +46,40 @@ class UserLoginSerializer(serializers.Serializer):
 # =========================
 # HELPERS
 # =========================
-
 def absolute_url(request, filefield):
     if not filefield:
         return None
     try:
-        return request.build_absolute_uri(filefield.url)
+        return filefield.url  # CloudinaryField fournit directement l'URL publique
     except:
         return None
 
 # =========================
 # PHOTOS & VIDEOS
 # =========================
-
 class PhotoSerializer(serializers.ModelSerializer):
+    photos = serializers.SerializerMethodField()
+
     class Meta:
         model = Photo
         fields = ['photos']
 
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        return {'photos': absolute_url(request, instance.photos)}
+    def get_photos(self, obj):
+        return absolute_url(self.context.get('request'), obj.photos)
 
 class VideoSerializer(serializers.ModelSerializer):
+    video = serializers.SerializerMethodField()
+
     class Meta:
         model = Video
         fields = ['video']
 
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        return {'video': absolute_url(request, instance.video)}
+    def get_video(self, obj):
+        return absolute_url(self.context.get('request'), obj.video)
 
 # =========================
 # MAISONS
 # =========================
-
 class MaisonSerializer(serializers.ModelSerializer):
     photos = PhotoSerializer(many=True, read_only=True)
     videos = VideoSerializer(many=True, read_only=True)
@@ -102,61 +100,28 @@ class MaisonSerializer(serializers.ModelSerializer):
 # =========================
 # PUBLICITES
 # =========================
-
 class PubliciteSerializer(serializers.ModelSerializer):
+    photos = serializers.SerializerMethodField()
+
     class Meta:
         model = Publicite
         fields = '__all__'
 
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        rep = super().to_representation(instance)
-        if instance.photos and hasattr(instance.photos, 'url'):
-            rep['photos'] = absolute_url(request, instance.photos)
-        else:
-            rep['photos'] = None  # ou URL de placeholder
-        return rep
-
-
-# =========================
-# PARCELLES
-# =========================
-
-class ParcellePhotoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ParcellePhoto
-        fields = ['photos']
-
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        return {'photos': absolute_url(request, instance.photos)}
-
-class ParcelleSerializer(serializers.ModelSerializer):
-    photos = ParcellePhotoSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Parcelle
-        fields = '__all__'
-
-    def create(self, validated_data):
-        request = self.context['request']
-        parcelle = Parcelle.objects.create(**validated_data)
-        for photo in request.FILES.getlist('photos'):
-            ParcellePhoto.objects.create(parcelle=parcelle, photos=photo)
-        return parcelle
+    def get_photos(self, obj):
+        return absolute_url(self.context.get('request'), obj.photos)
 
 # =========================
 # HOTELS
 # =========================
-
 class HotelPhotoSerializer(serializers.ModelSerializer):
+    photos = serializers.SerializerMethodField()
+
     class Meta:
         model = HotelPhoto
         fields = ['photos']
 
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        return {'photos': absolute_url(request, instance.photos)}
+    def get_photos(self, obj):
+        return absolute_url(self.context.get('request'), obj.photos)
 
 class HotelSerializer(serializers.ModelSerializer):
     photos = HotelPhotoSerializer(many=True, read_only=True)
@@ -173,16 +138,41 @@ class HotelSerializer(serializers.ModelSerializer):
         return hotel
 
 # =========================
+# PARCELLES
+# =========================
+class ParcellePhotoSerializer(serializers.ModelSerializer):
+    photos = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ParcellePhoto
+        fields = ['photos']
+
+    def get_photos(self, obj):
+        return absolute_url(self.context.get('request'), obj.photos)
+
+class ParcelleSerializer(serializers.ModelSerializer):
+    photos = ParcellePhotoSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Parcelle
+        fields = '__all__'
+
+    def create(self, validated_data):
+        request = self.context['request']
+        parcelle = Parcelle.objects.create(**validated_data)
+        for photo in request.FILES.getlist('photos'):
+            ParcellePhoto.objects.create(parcelle=parcelle, photos=photo)
+        return parcelle
+
+# =========================
 # PAYS
 # =========================
-
 class PaysSerializer(serializers.ModelSerializer):
+    drapeau = serializers.SerializerMethodField()
+
     class Meta:
         model = Pays
         fields = ['nom', 'code', 'drapeau']
 
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        rep = super().to_representation(instance)
-        rep['drapeau'] = absolute_url(request, instance.drapeau)
-        return rep
+    def get_drapeau(self, obj):
+        return absolute_url(self.context.get('request'), obj.drapeau)

@@ -1,45 +1,52 @@
 from django.contrib import admin
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+
 from .models import *
 
-# Inline for managing photos in Maison admin interface
+# =========================
+# Inlines pour les photos et vidéos
+# =========================
 class PhotoInline(admin.TabularInline):
     model = Photo
-    extra = 1  # Allows adding one more photo at a time
+    extra = 1
 
-# Inline for managing photos in Parcelle admin interface
 class ParcellePhotoInline(admin.TabularInline):
     model = ParcellePhoto
-    extra = 1  # Allows adding one more photo at a time
+    extra = 1
 
-# Inline for managing photos in Hotel admin interface
 class HotelPhotoInline(admin.TabularInline):
     model = HotelPhoto
-    extra = 1  # Allows adding one more photo at a time
+    extra = 1
 
 class VideoInline(admin.TabularInline):
     model = Video
-    extra = 1  # Permet d'ajouter une vidéo supplémentaire
+    extra = 1
 
-# Personnalisation de l'admin de Maison pour inclure l'inline Photo et Video
+# =========================
+# Admin pour Maison
+# =========================
 class MaisonAdmin(admin.ModelAdmin):
     list_display = ('type_maison', 'description', 'prix', 'nombre_chambres', 'nombre_salles_de_bain', 'ville')
-    inlines = [PhotoInline, VideoInline]  # Ajoutez l'inline pour les vidéos ici
+    inlines = [PhotoInline, VideoInline]
 
-# Parcelle admin customization to include the ParcellePhoto inline
+# =========================
+# Admin pour Parcelle
+# =========================
 class ParcelleAdmin(admin.ModelAdmin):
     list_display = ('description', 'prix', 'surface', 'quartier', 'date_creation')
-    inlines = [ParcellePhotoInline]  # Add the inline models here
+    inlines = [ParcellePhotoInline]
 
-# Hotel admin customization to include the HotelPhoto inline
+# =========================
+# Admin pour Hôtel
+# =========================
 class HotelAdmin(admin.ModelAdmin):
     list_display = ('titre', 'description', 'date_creation')
-    inlines = [HotelPhotoInline]  # Add the inline models here
-# Registering the models with the admin panel
+    inlines = [HotelPhotoInline]
 
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from .models import User
-
+# =========================
+# Admin pour User personnalisé
+# =========================
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = User
@@ -50,12 +57,12 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'phone_number', 'email', 'is_active', 'is_staff')
     search_fields = ('username', 'phone_number', 'email')
 
+# =========================
+# Enregistrement des modèles
+# =========================
 admin.site.register(User, UserAdmin)
-
-
 admin.site.register(Maison, MaisonAdmin)
 admin.site.register(Publicite)
 admin.site.register(Pays)
 admin.site.register(Parcelle, ParcelleAdmin)
 admin.site.register(Hotel, HotelAdmin)
-

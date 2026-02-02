@@ -1,13 +1,25 @@
 from django import forms
-from .models import *
+from .models import (
+    Maison, Photo, Video,
+    Parcelle, ParcellePhoto,
+    Publicite,
+    Hotel, HotelPhoto,
+    Pays
+)
 
-
+# =========================
+# MAISONS
+# =========================
 class MaisonForm(forms.ModelForm):
     class Meta:
         model = Maison
-        fields = ['type_maison', 'description', 'prix', 'nombre_chambres', 
-                  'nombre_salles_de_bain', 'nombre_salon', 'nombre_cuisines', 
-                  'surface', 'piscine', 'quartier', 'ville', 'pays']
+        fields = [
+            'type_maison', 'description', 'prix',
+            'nombre_chambres', 'nombre_salles_de_bain',
+            'nombre_salon', 'nombre_cuisines',
+            'surface', 'piscine',
+            'quartier', 'ville', 'pays'
+        ]
 
 class PhotoForm(forms.ModelForm):
     class Meta:
@@ -19,35 +31,47 @@ class VideoForm(forms.ModelForm):
         model = Video
         fields = ['video']
 
+# =========================
+# PARCELLES
+# =========================
 class ParcelleForm(forms.ModelForm):
     class Meta:
         model = Parcelle
         fields = ['description', 'prix', 'surface', 'quartier']
-
-
-class PubliciteForm(forms.ModelForm):
-    class Meta:
-        model = Publicite
-        fields = ['titre', 'photos', 'lien']
-
-
-class HotelForm(forms.ModelForm):
-    class Meta:
-        model = Hotel
-        fields = '__all__'  # Inclut tous les champs du modèle Hotel
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
-            'prix': forms.NumberInput(attrs={'step': '0.01'}),
-            'surface': forms.NumberInput(attrs={'step': '0.01'}),
-        }
-
 
 class ParcellePhotoForm(forms.ModelForm):
     class Meta:
         model = ParcellePhoto
         fields = ['photos']
 
+# =========================
+# PUBLICITES
+# =========================
+class PubliciteForm(forms.ModelForm):
+    class Meta:
+        model = Publicite
+        fields = ['titre', 'photos', 'lien']
+
+# =========================
+# HOTELS
+# =========================
+class HotelForm(forms.ModelForm):
+    class Meta:
+        model = Hotel
+        fields = ['titre', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
 class HotelPhotoForm(forms.ModelForm):
     class Meta:
         model = HotelPhoto
         fields = ['photos']
+
+# =========================
+# PAYS
+# =========================
+class PaysForm(forms.ModelForm):
+    class Meta:
+        model = Pays
+        fields = ['nom', 'code', 'drapeau']
