@@ -20,12 +20,7 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret")
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ['*']
-if 'RENDER' in os.environ:
-    ALLOWED_HOSTS.extend([
-        'mavilla.onrender.com',
-        'https://mavilla.onrender.com',
-    ])
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 # =========================
 # APPLICATIONS
@@ -98,17 +93,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'villana.wsgi.application'
 
 # =========================
-# DATABASE (PostgreSQL Render)
+# DATABASE (PostgreSQL)
 # =========================
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL must be set in your .env file")
+
 DATABASES = {
-    "default": dj_database_url.parse(
-        os.environ.get(
-            "DATABASE_URL",
-            f"sqlite:///{BASE_DIR / 'db.sqlite3'}"  # fallback pour dev local
-        ),
-        conn_max_age=600,
-        ssl_require=True  # Render exige SSL
-    )
+    "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
 }
 
 # =========================
