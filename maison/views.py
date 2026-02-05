@@ -5,6 +5,7 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework.views import APIView
 from .models import *
 from .serializers import *
+from rest_framework.permissions import IsAuthenticated
 
 
 # =========================
