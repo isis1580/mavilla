@@ -31,6 +31,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=15, unique=True)
     email = models.EmailField(unique=True, blank=True, null=True)
+    avatar = CloudinaryField('image', blank=True, null=True)  # 👈 ici
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
@@ -46,6 +47,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 # MAISONS
 # =========================
 class Maison(models.Model):
+    
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_maisons", null=True, blank=True)
     TYPE_MAISON_CHOICES = [
         ('vente', 'À vendre'),
         ('location', 'À louer'),
@@ -63,6 +66,7 @@ class Maison(models.Model):
     ville = models.CharField(max_length=255)
     pays = models.CharField(max_length=100)
     date_creation = models.DateTimeField(auto_now_add=True)
+    
 
     def __str__(self):
         return f'{self.type_maison} - {self.ville}'
@@ -96,6 +100,8 @@ class Publicite(models.Model):
 # PARCELLES
 # =========================
 class Parcelle(models.Model):
+    
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_parcelle", null=True, blank=True)
     description = models.CharField(max_length=255)
     prix = models.DecimalField(max_digits=10, decimal_places=2)
     surface = models.DecimalField(max_digits=10, decimal_places=2)
@@ -113,6 +119,7 @@ class ParcellePhoto(models.Model):
 # HOTELS
 # =========================
 class Hotel(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_hotels",null=True, blank=True)
     titre = models.CharField(max_length=255)
     description = models.TextField()
     date_creation = models.DateTimeField(auto_now_add=True)
@@ -121,6 +128,8 @@ class Hotel(models.Model):
         return self.titre
 
 class HotelPhoto(models.Model):
+    
+    
     hotel = models.ForeignKey(Hotel, related_name='photos', on_delete=models.CASCADE)
     photos = CloudinaryField('image', blank=True, null=True)
 

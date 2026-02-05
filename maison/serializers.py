@@ -2,22 +2,25 @@ from rest_framework import serializers
 from .models import *
 from rest_framework_simplejwt.tokens import RefreshToken
 
-# =========================
-# USERS
-# =========================
-class UserRegistrationSerializer(serializers.ModelSerializer):
+
+# -----------------------
+# REGISTRATION & LOGIN
+# -----------------------
+class UserRegistrationSerializer(serializers.ModelSerializer): 
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+    avatar = serializers.ImageField(required=False, allow_null=True)  # AJOUT avatar
 
     class Meta:
         model = User
-        fields = ['username', 'phone_number', 'email', 'password']
+        fields = ['username', 'phone_number', 'email', 'password', 'avatar']
 
     def create(self, validated_data):
         return User.objects.create_user(
             phone_number=validated_data['phone_number'],
             username=validated_data['username'],
             email=validated_data.get('email'),
-            password=validated_data['password']
+            password=validated_data['password'],
+            avatar=validated_data.get('avatar')
         )
 
 class UserLoginSerializer(serializers.Serializer):
@@ -40,12 +43,13 @@ class UserLoginSerializer(serializers.Serializer):
                 'username': user.username,
                 'phone_number': user.phone_number,
                 'email': user.email,
+                'avatar': user.avatar.url if user.avatar else None
             }
         }
 
-# =========================
+# -----------------------
 # HELPERS
-# =========================
+# -----------------------
 def absolute_url(request, filefield):
     if not filefield:
         return None
@@ -53,7 +57,6 @@ def absolute_url(request, filefield):
         return filefield.url  # CloudinaryField fournit directement l'URL publique
     except:
         return None
-
 # =========================
 # PHOTOS & VIDEOS
 # =========================
