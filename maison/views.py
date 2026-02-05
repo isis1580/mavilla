@@ -47,13 +47,25 @@ class UserLoginView(APIView):
 class MaisonViewSet(viewsets.ModelViewSet):
     queryset = Maison.objects.all()
     serializer_class = MaisonSerializer
+    permission_classes = [IsAuthenticated]
 
-    def get_serializer_context(self):
-        return {"request": self.request}
+    @action(detail=True, methods=['post'])
+    def like(self, request, pk=None):
+        maison = self.get_object()
+        user = request.user
+        # Vérifie si l'utilisateur a déjà liké
+        liked = False
+        like_obj = Like.objects.filter(maison=maison, user=user).first()
+        if like_obj:
+            like_obj.delete()
+        else:
+            Like.objects.create(maison=maison, user=user)
+            liked = True
 
-
-# =========================
-# Parcelles
+        likes_count = Like.objects.filter(maison=maison).count()
+        return Response({'liked': liked, 'likes_count': likes_count}, status=status.HTTP_200_OK)
+    
+# ====Parcelles=================
 # =========================
 class ParcelleViewSet(viewsets.ModelViewSet):
     queryset = Parcelle.objects.all()
