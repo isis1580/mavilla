@@ -10,7 +10,8 @@ router.register(r'parcelle-photos', ParcellePhotoViewSet, basename='parcellephot
 router.register(r'hotels', HotelViewSet, basename='hotel')
 router.register(r'hotel-photos', HotelPhotoViewSet, basename='hotelphoto')
 router.register(r'publicites', PubliciteViewSet, basename='publicite')
-
+router.register("messages", MessageViewSet)
+router.register("notifications", NotificationViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),

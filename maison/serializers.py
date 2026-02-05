@@ -176,3 +176,29 @@ class PaysSerializer(serializers.ModelSerializer):
 
     def get_drapeau(self, obj):
         return absolute_url(self.context.get('request'), obj.drapeau)
+
+
+
+
+
+
+
+# =========================
+# MESSAGES
+# =========================
+class MessageSerializer(serializers.ModelSerializer):
+    sender_name = serializers.CharField(source="sender.username", read_only=True)
+    receiver_name = serializers.CharField(source="receiver.username", read_only=True)
+
+    class Meta:
+        model = Message
+        fields = "__all__"
+
+
+# =========================
+# NOTIFICATIONS
+# =========================
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = "__all__"

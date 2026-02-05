@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.http import JsonResponse, HttpResponse
 from rest_framework.views import APIView
-
 from .models import *
 from .serializers import *
 
@@ -169,3 +168,27 @@ def photo_list_view(request):
 def video_list_view(request):
     videos = list(Video.objects.values())
     return JsonResponse(videos, safe=False)
+
+
+
+
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+
+class MessageViewSet(viewsets.ModelViewSet):
+    serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Message.objects.filter(
+            models.Q(sender=user) | models.Q(receiver=user)
+        ).order_by("created_at")
+
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user).order_by("-created_at")

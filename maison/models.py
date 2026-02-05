@@ -141,30 +141,35 @@ class Pays(models.Model):
 # MESSAGES
 # =========================
 class Message(models.Model):
-    sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
-    receiver = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
-    content = models.TextField()
+    sender = models.ForeignKey(User, related_name="sent_messages", on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, related_name="received_messages", on_delete=models.CASCADE)
+    text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
 
-    class Meta:
-        ordering = ['-created_at']
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        Notification.objects.create(
+            user=self.receiver,
+            title=f"Nouveau message de {self.sender.username}",
+            body=self.text[:50],
+            type="message"
+        )
 
     def __str__(self):
-        return f'{self.sender} -> {self.receiver}: {self.content[:20]}'
+        return f"{self.sender} → {self.receiver}"
+
 
 # =========================
 # NOTIFICATIONS
 # =========================
 class Notification(models.Model):
-    user = models.ForeignKey(User, related_name='notifications', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    content = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    body = models.TextField(blank=True)
+    type = models.CharField(max_length=50,  default="system")
     is_read = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ['-created_at']
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Notification pour {self.user}: {self.title}'
+        return self.title
