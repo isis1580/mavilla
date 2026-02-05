@@ -5,7 +5,7 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework.views import APIView
 from .models import *
 from .serializers import *
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,  AllowAny
 
 
 # =========================
@@ -48,7 +48,7 @@ class UserLoginView(APIView):
 class MaisonViewSet(viewsets.ModelViewSet):
     queryset = Maison.objects.all()
     serializer_class = MaisonSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
