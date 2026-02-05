@@ -99,6 +99,11 @@ class MaisonSerializer(serializers.ModelSerializer):
         for video in request.FILES.getlist('videos'):
             Video.objects.create(maison=maison, video=video)
         return maison
+    def get_liked(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.like_set.filter(user=user).exists()
+        return False
 
 # =========================
 # PUBLICITES

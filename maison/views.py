@@ -1,24 +1,31 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.http import JsonResponse, HttpResponse
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
+from django.http import JsonResponse, HttpResponse
+from django.db import models
+import logging
+import traceback
+
 from .models import *
 from .serializers import *
-from rest_framework.permissions import IsAuthenticated,  AllowAny
 
+logger = logging.getLogger(__name__)
 
 # =========================
-# Home
+# HOME
 # =========================
 def home(request):
     return HttpResponse("Bienvenue sur Villana !")
 
 
 # =========================
-# Auth
+# AUTH
 # =========================
 class UserRegistrationView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
@@ -35,6 +42,8 @@ class UserRegistrationView(APIView):
 
 
 class UserLoginView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -43,18 +52,21 @@ class UserLoginView(APIView):
 
 
 # =========================
-# Maisons
+# MAISONS
 # =========================
 class MaisonViewSet(viewsets.ModelViewSet):
     queryset = Maison.objects.all()
     serializer_class = MaisonSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny]  # Tout le monde peut voir
 
-    @action(detail=True, methods=['post'])
+    # -------------------------------
+    # Like (auth requis)
+    # -------------------------------
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def like(self, request, pk=None):
         maison = self.get_object()
         user = request.user
-        # Vérifie si l'utilisateur a déjà liké
+
         liked = False
         like_obj = Like.objects.filter(maison=maison, user=user).first()
         if like_obj:
@@ -65,12 +77,40 @@ class MaisonViewSet(viewsets.ModelViewSet):
 
         likes_count = Like.objects.filter(maison=maison).count()
         return Response({'liked': liked, 'likes_count': likes_count}, status=status.HTTP_200_OK)
-    
-# ====Parcelles=================
+    def get_serializer_context(self):
+        return {"request": self.request}
+
+    # -------------------------------
+    # Commentaire (auth requis)
+    # -------------------------------
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
+    def comment(self, request, pk=None):
+        maison = self.get_object()
+        user = request.user
+        text = request.data.get('text')
+
+        if not text:
+            return Response({'error': 'Le texte du commentaire est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        comment = Comment.objects.create(maison=maison, user=user, text=text)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['GET'], permission_classes=[AllowAny])
+    def comments(self, request, pk=None):
+        maison = self.get_object()
+        comments = Comment.objects.filter(maison=maison).order_by('-created_at')
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# =========================
+# PARCELLES
 # =========================
 class ParcelleViewSet(viewsets.ModelViewSet):
     queryset = Parcelle.objects.all()
     serializer_class = ParcelleSerializer
+    permission_classes = [AllowAny]
 
     def get_serializer_context(self):
         return {"request": self.request}
@@ -79,17 +119,19 @@ class ParcelleViewSet(viewsets.ModelViewSet):
 class ParcellePhotoViewSet(viewsets.ModelViewSet):
     queryset = ParcellePhoto.objects.all()
     serializer_class = ParcellePhotoSerializer
+    permission_classes = [AllowAny]
 
     def get_serializer_context(self):
         return {"request": self.request}
 
 
 # =========================
-# Hotels
+# HOTELS
 # =========================
 class HotelViewSet(viewsets.ModelViewSet):
     queryset = Hotel.objects.all()
     serializer_class = HotelSerializer
+    permission_classes = [AllowAny]
 
     def get_serializer_context(self):
         return {"request": self.request}
@@ -98,34 +140,25 @@ class HotelViewSet(viewsets.ModelViewSet):
 class HotelPhotoViewSet(viewsets.ModelViewSet):
     queryset = HotelPhoto.objects.all()
     serializer_class = HotelPhotoSerializer
+    permission_classes = [AllowAny]
 
     def get_serializer_context(self):
         return {"request": self.request}
 
 
 # =========================
-# Publicités
+# PUBLICITES
 # =========================
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from .models import Publicite
-from .serializers import PubliciteSerializer
-import traceback
-import logging
-
-logger = logging.getLogger(__name__)
-
 class PubliciteViewSet(viewsets.ModelViewSet):
     queryset = Publicite.objects.all()
     serializer_class = PubliciteSerializer
+    permission_classes = [AllowAny]
 
     def list(self, request, *args, **kwargs):
         try:
-            # On récupère toutes les publicités
             queryset = self.get_queryset()
             serializer = self.get_serializer(queryset, many=True, context={'request': request})
 
-            # On s'assure que chaque image est un lien absolu Cloudinary
             data = []
             for pub in serializer.data:
                 if pub.get('photos'):
@@ -136,14 +169,11 @@ class PubliciteViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             print("🔥 ERREUR PUBLICITES 🔥")
-            traceback.print_exc()  # Affiche la stack trace complète dans le terminal
+            traceback.print_exc()
             logger.error(f"Erreur PubliciteViewSet: {e}", exc_info=True)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def make_absolute_url(self, url, request):
-        """
-        Transforme un chemin Cloudinary ou local en URL complète.
-        """
         if not url:
             return None
         if url.startswith('http://') or url.startswith('https://'):
@@ -153,8 +183,9 @@ class PubliciteViewSet(viewsets.ModelViewSet):
         slash = '' if url.startswith('/') else '/'
         return request.build_absolute_uri(f"{slash}{url}")
 
+
 # =========================
-# Pays
+# PAYS
 # =========================
 def liste_pays(request):
     pays_list = list(Pays.objects.all().values('nom', 'code', 'drapeau'))
@@ -171,7 +202,7 @@ def detect_country(request):
 
 
 # =========================
-# Media debug
+# MEDIA DEBUG
 # =========================
 def photo_list_view(request):
     photos = list(Photo.objects.values())
@@ -183,11 +214,9 @@ def video_list_view(request):
     return JsonResponse(videos, safe=False)
 
 
-
-
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-
+# =========================
+# MESSAGES
+# =========================
 class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
@@ -199,6 +228,9 @@ class MessageViewSet(viewsets.ModelViewSet):
         ).order_by("created_at")
 
 
+# =========================
+# NOTIFICATIONS
+# =========================
 class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
