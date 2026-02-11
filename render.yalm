@@ -1,12 +1,34 @@
 services:
   - type: web
-    name: villana
+    name: mavilla-django
     env: python
-    plan: free
-    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
-    startCommand: "gunicorn villana.wsgi:application"
+    region: oregon  # Même région que ta database
+    plan: free  # ou starter/business selon tes besoins
+    buildCommand: "./build.sh"
+    startCommand: gunicorn villana.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
-      - key: SECRET_KEY
+      - key: DATABASE_URL
+        fromDatabase:
+          name: maisondatabase
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
         generateValue: true
-      - key: DEBUG
-        value: "False"
+      - key: DJANGO_DEBUG
+        value: false
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://mavilla.onrender.com,https://ton-frontend-react.com
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dwg9lwgyt
+      - key: CLOUDINARY_API_KEY
+        value: 222745575696657
+      - key: CLOUDINARY_API_SECRET
+        value: ZCwHe5JOFdOMrT12A1m7d911WY4
+      - key: PYTHON_VERSION
+        value: 3.13.9
+
+databases:
+  - name: maisondatabase
+    region: oregon
+    plan: free  # ou starter/business
+    databaseName: maisondatabase
+    user: maisondatabase_user
