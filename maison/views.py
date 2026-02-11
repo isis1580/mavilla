@@ -582,7 +582,30 @@ def statistiques_globales(request):
             .order_by('-likes_count')[:5]
     }
     return Response(data)
-
+# =========================
+# RECHERCHE D'UTILISATEURS
+# =========================
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_users(request):
+    """
+    Recherche d'utilisateurs par username, email ou téléphone
+    Endpoint: /search-users/?q=jean
+    """
+    query = request.query_params.get('q', '')
+    
+    if not query:
+        return Response([])
+    
+    # Recherche dans les 3 champs
+    users = User.objects.filter(
+        Q(username__icontains=query) |
+        Q(email__icontains=query) |
+        Q(phone_number__icontains=query)
+    )[:20]  # Limite à 20 résultats
+    
+    serializer = UserProfileSerializer(users, many=True)
+    return Response(serializer.data)
 # =========================
 # MEDIA DEBUG
 # =========================

@@ -16,23 +16,24 @@ router.register(r'messages', MessageViewSet, basename='message')
 router.register(r'notifications', NotificationViewSet, basename='notification')
 
 urlpatterns = [
-    # Admin personnalisé
+    # Admin
     path('admin/', admin_site.urls),
-    # Admin Django par défaut (en parallèle)
     path('django-admin/', admin.site.urls),
     
+    # Home
     path('', home, name='home'),
 
-    # Auth
+    # Auth (SANS /api)
     path('register/', UserRegistrationView.as_view(), name='register'),
     path('login/', UserLoginView.as_view(), name='login'),
     path('profile/', UserProfileView.as_view(), name='profile'),
+    path('search-users/', search_users, name='search-users'),
 
     # Pays
     path('liste_pays/', liste_pays, name='liste-pays'),
     path('detect_country/', detect_country, name='detect-country'),
 
-    # Dashboard & Statistiques
+    # Dashboard
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
     path('statistiques-globales/', statistiques_globales, name='statistiques-globales'),
 
@@ -40,7 +41,9 @@ urlpatterns = [
     path('photos/', photo_list_view, name='photo-list'),
     path('videos/', video_list_view, name='video-list'),
 
-    # DRF router
-    path('api/', include(router.urls)),
+    # 🔥 LA CLÉ : ROUTER À LA RACINE (SANS /api)
+    path('', include(router.urls)),  # ← C'EST ÇA QUI MARCHE !
+    
+    # DRF auth (optionnel)
     path('api-auth/', include('rest_framework.urls')),
 ]
