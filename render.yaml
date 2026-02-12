@@ -24,7 +24,7 @@ services:
       - key: CLOUDINARY_API_SECRET
         value: ZCwHe5JOFdOMrT12A1m7d911WY4
       - key: PYTHON_VERSION
-        value: 3.12.0
+        value: 3.12.9
 
 databases:
   - name: maisondatabase
