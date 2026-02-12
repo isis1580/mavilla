@@ -16,14 +16,14 @@ router.register(r'messages', MessageViewSet, basename='message')
 router.register(r'notifications', NotificationViewSet, basename='notification')
 
 urlpatterns = [
-    # Admin
+    # Admin - PRIORITAIRE
     path('admin/', admin_site.urls),
     path('django-admin/', admin.site.urls),
     
     # Home
     path('', home, name='home'),
 
-    # Auth (SANS /api)
+    # Auth et endpoints spécifiques - AVANT le router
     path('register/', UserRegistrationView.as_view(), name='register'),
     path('login/', UserLoginView.as_view(), name='login'),
     path('profile/', UserProfileView.as_view(), name='profile'),
@@ -41,9 +41,9 @@ urlpatterns = [
     path('photos/', photo_list_view, name='photo-list'),
     path('videos/', video_list_view, name='video-list'),
 
-    # 🔥 LA CLÉ : ROUTER À LA RACINE (SANS /api)
-    path('', include(router.urls)),  # ← C'EST ÇA QUI MARCHE !
-    
-    # DRF auth (optionnel)
+    # DRF auth
     path('api-auth/', include('rest_framework.urls')),
+    
+    # 🔥 ROUTER À LA FIN - Capture tout ce qui n'est pas capturé avant
+    path('', include(router.urls)),
 ]
