@@ -1,10 +1,10 @@
 services:
   - type: web
     name: mavilla-django
-    env: python
-    region: oregon  # Même région que ta database
-    plan: free  # ou starter/business selon tes besoins
-    buildCommand: "./build.sh"
+    runtime: python  # ← CORRIGÉ (était "env: python")
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput  # ← CORRIGÉ
     startCommand: gunicorn villana.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: DATABASE_URL
@@ -25,10 +25,12 @@ services:
         value: ZCwHe5JOFdOMrT12A1m7d911WY4
       - key: PYTHON_VERSION
         value: 3.13.4
+      - key: POETRY_VERSION
+        value: none  # ← AJOUTÉ (obligatoire pour utiliser pip)
 
 databases:
   - name: maisondatabase
     region: oregon
-    plan: free  # ou starter/business
+    plan: free
     databaseName: maisondatabase
     user: maisondatabase_user
