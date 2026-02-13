@@ -39,7 +39,7 @@ class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        print("🔍 DONNÉES REÇUES:", request.data)  # ← AJOUTE CETTE LIGNE
+        logger.error(f"🔍 DONNÉES REÇUES: {request.data}")  # ← CHANGÉ
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -54,7 +54,7 @@ class UserRegistrationView(APIView):
                 }
             }, status=status.HTTP_201_CREATED)
         
-        print("❌ ERREURS:", serializer.errors)  # ← AJOUTE CETTE LIGNE
+        logger.error(f"❌ ERREURS: {serializer.errors}")  # ← CHANGÉ
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserLoginView(APIView):

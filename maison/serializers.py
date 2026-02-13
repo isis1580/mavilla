@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Avg, Count, Q
+import logging
+logger = logging.getLogger(__name__)
 
 # -----------------------
 # HELPERS
@@ -26,7 +28,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ['username', 'phone_number', 'email', 'password', 'avatar', 'is_proprietaire']
 
     def create(self, validated_data):
-        print("🔍 CRÉATION UTILISATEUR:", validated_data)  # ← AJOUTE CETTE LIGNE
+        logger.error(f"🔍 CRÉATION UTILISATEUR: {validated_data}")  # ← CHANGÉ
         return User.objects.create_user(
             phone_number=validated_data['phone_number'],
             username=validated_data['username'],
