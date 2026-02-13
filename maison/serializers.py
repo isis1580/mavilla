@@ -26,6 +26,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ['username', 'phone_number', 'email', 'password', 'avatar', 'is_proprietaire']
 
     def create(self, validated_data):
+        print("🔍 CRÉATION UTILISATEUR:", validated_data)  # ← AJOUTE CETTE LIGNE
         return User.objects.create_user(
             phone_number=validated_data['phone_number'],
             username=validated_data['username'],
