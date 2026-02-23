@@ -9,7 +9,9 @@ services:
       python manage.py collectstatic --noinput &&
       
     startCommand: 
-      python manage.py migrate &&
+      echo "=== DÉBUT DE LA MIGRATION ===" &&
+      python manage.py migrate --verbosity 3 &&
+      echo "=== FIN DE LA MIGRATION ===" &&
       gunicorn villana.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: DATABASE_URL
