@@ -1,14 +1,13 @@
 services:
   - type: web
     name: mavilla-django
-    runtime: python  # ← CORRIGÉ (était "env: python")
+    runtime: python
     region: oregon
     plan: free
     buildCommand: |
       pip install -r requirements.txt &&
-      python manage.py collectstatic --noinput &&
-      
-    startCommand: 
+      python manage.py collectstatic --noinput
+    startCommand: |
       echo "=== DÉBUT DE LA MIGRATION ===" &&
       python manage.py migrate --verbosity 3 &&
       echo "=== FIN DE LA MIGRATION ===" &&
@@ -33,7 +32,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.13.4
       - key: POETRY_VERSION
-        value: none  # ← AJOUTÉ (obligatoire pour utiliser pip)
+        value: none
 
 databases:
   - name: maisondatabase
