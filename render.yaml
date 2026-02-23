@@ -8,9 +8,9 @@ services:
       pip install -r requirements.txt &&
       python manage.py collectstatic --noinput
     startCommand: |
-      echo "=== DÉBUT DE LA MIGRATION ===" &&
+      echo "🔥🔥🔥 MIGRATION COMMENCEE 🔥🔥🔥" &&
       python manage.py migrate --verbosity 3 &&
-      echo "=== FIN DE LA MIGRATION ===" &&
+      echo "✅✅✅ MIGRATION TERMINEE ✅✅✅" &&
       gunicorn villana.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: DATABASE_URL
