@@ -7,8 +7,10 @@ services:
     buildCommand: |
       pip install -r requirements.txt &&
       python manage.py collectstatic --noinput &&
-      python manage.py migrate  # ← AJOUTE ÇA !
-    startCommand: gunicorn villana.wsgi:application --bind 0.0.0.0:$PORT
+      
+    startCommand: 
+      python manage.py migrate &&
+      gunicorn villana.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: DATABASE_URL
         fromDatabase:
