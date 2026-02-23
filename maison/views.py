@@ -15,7 +15,23 @@ from datetime import datetime, timedelta
 
 from .models import *
 from .serializers import *
+import traceback
+from django.http import JsonResponse
 
+class SimpleDebugMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_exception(self, request, exception):
+        error_trace = traceback.format_exc()
+        return JsonResponse({
+            'error': str(exception),
+            'type': type(exception).__name__,
+            'traceback': error_trace.split('\n')
+        }, status=500)
 logger = logging.getLogger(__name__)
 
 # =========================
