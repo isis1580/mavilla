@@ -57,15 +57,35 @@ class UserRegistrationView(APIView):
         logger.error(f"❌ ERREURS: {serializer.errors}")  # ← CHANGÉ
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+import traceback
+
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = UserLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            return Response(serializer.validated_data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        logger.error("=== DÉBUT DE LA REQUÊTE LOGIN ===")
+        logger.error(f"Données reçues: {request.data}")
 
+        try:
+            serializer = UserLoginSerializer(data=request.data)
+
+            if serializer.is_valid():
+                logger.error("✅ Sérialiseur valide, authentification réussie")
+                return Response(serializer.validated_data, status=status.HTTP_200_OK)
+            else:
+                logger.error(f"❌ Sérialiseur invalide: {serializer.errors}")
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            logger.error("🔥🔥🔥 EXCEPTION CATASTROPHIQUE DANS LA VUE LOGIN 🔥🔥🔥")
+            logger.error(f"Type d'exception: {type(e).__name__}")
+            logger.error(f"Message: {str(e)}")
+            logger.error("Traceback complet:")
+            logger.error(traceback.format_exc())
+            return Response(
+                {"error": "Erreur interne du serveur", "detail": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
