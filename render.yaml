@@ -7,11 +7,7 @@ services:
     buildCommand: |
       pip install -r requirements.txt &&
       python manage.py collectstatic --noinput
-    startCommand: |
-      echo "🔥🔥🔥 MIGRATION COMMENCEE 🔥🔥🔥" &&
-      python manage.py migrate --verbosity 3 &&
-      echo "✅✅✅ MIGRATION TERMINEE ✅✅✅" &&
-      gunicorn villana.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: ./start.sh
     envVars:
       - key: DATABASE_URL
         fromDatabase:
