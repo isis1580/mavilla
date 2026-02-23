@@ -5,8 +5,9 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Count
 from django.utils import timezone
-
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import *
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 # =========================
 # Inlines
@@ -172,40 +173,55 @@ class ResidenceAdmin(admin.ModelAdmin):
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ('username', 'phone_number', 'email', 'is_active', 
-                 'is_staff', 'is_proprietaire', 'is_verified')
+        fields = ('username', 'phone_number', 'email', 'password1', 'password2', 
+                 'is_active', 'is_staff', 'is_proprietaire', 'is_verified')
+    
+    # Optionnel : ajouter des widgets pour améliorer l'affichage
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['password1'].label = "Mot de passe"
+        self.fields['password2'].label = "Confirmation du mot de passe"
 
-class UserAdmin(admin.ModelAdmin):
-    form = CustomUserCreationForm
-    list_display = ('username', 'phone_number', 'email', 'is_proprietaire', 
-                   'is_verified', 'is_active', 'is_staff', 'date_joined')
+
+class UserAdmin(BaseUserAdmin):
+    add_form = CustomUserCreationForm
+
+    model = User
+
+    list_display = ('username', 'phone_number', 'email', 'is_proprietaire',
+                    'is_verified', 'is_active', 'is_staff', 'date_joined')
+
     list_filter = ('is_proprietaire', 'is_verified', 'is_active', 'is_staff')
+
     search_fields = ('username', 'phone_number', 'email')
-    readonly_fields = ('date_joined',)
+    ordering = ('phone_number',)
+
+    readonly_fields = ('date_joined', 'last_login')
+
     fieldsets = (
-        ('Informations de base', {
-            'fields': ('username', 'phone_number', 'email', 'avatar')
+        (None, {'fields': ('phone_number', 'password')}),
+        ('Informations personnelles', {
+            'fields': ('username', 'email', 'avatar')
         }),
         ('Permissions', {
-            'fields': ('is_active', 'is_staff', 'is_superuser', 
-                      'is_proprietaire', 'is_verified')
+            'fields': ('is_active', 'is_staff', 'is_superuser',
+                       'is_proprietaire', 'is_verified',
+                       'groups', 'user_permissions')
         }),
-        ('Dates', {
-            'fields': ('date_joined', 'last_login')
+        ('Dates importantes', {
+            'fields': ('last_login', 'date_joined')
         }),
     )
-    actions = ['verifier_utilisateurs', 'rendre_proprietaires']
 
-    def verifier_utilisateurs(self, request, queryset):
-        queryset.update(is_verified=True)
-        self.message_user(request, f"{queryset.count()} utilisateurs vérifiés.")
-    verifier_utilisateurs.short_description = "Vérifier les utilisateurs sélectionnés"
-
-    def rendre_proprietaires(self, request, queryset):
-        queryset.update(is_proprietaire=True)
-        self.message_user(request, f"{queryset.count()} utilisateurs marqués comme propriétaires.")
-    rendre_proprietaires.short_description = "Rendre propriétaires"
-
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('phone_number', 'username', 'email',
+                       'password1', 'password2',
+                       'is_active', 'is_staff',
+                       'is_proprietaire', 'is_verified')
+        }),
+    )
 # =========================
 # Admin pour Commentaire
 # =========================
