@@ -8,7 +8,7 @@ import sys
 from dotenv import load_dotenv
 import dj_database_url
 import cloudinary
-
+import dj_database_url
 # =========================
 # BASE DIRECTORY
 # =========================
@@ -107,30 +107,13 @@ WSGI_APPLICATION = 'villana.wsgi.application'
 # =========================
 # DATABASE (PostgreSQL sur Render)
 # =========================
-if os.environ.get('RENDER'):
-    # Production sur Render
-    import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
-            conn_max_age=600
-        )
-    }
-else:
-    # Développement local
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'villana_local',
-            'USER': 'postgres',
-            'PASSWORD': 'Isis1580',  # CHANGEZ ICI
-            'HOST': 'localhost',
-            'PORT': '5432',
-        }
-    }
-
-
-
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=True  # Important pour Render
+    )
+}
 # =========================
 # PASSWORD VALIDATION
 # =========================

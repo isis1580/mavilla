@@ -145,13 +145,29 @@ class MaisonSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
     is_favori = serializers.SerializerMethodField()
     note_moyenne = serializers.SerializerMethodField()
+    
+    # ✅ AJOUTE CE CHAMP
     owner_name = serializers.CharField(source='owner.username', read_only=True)
+    owner_avatar = serializers.SerializerMethodField()  # ← AJOUTE AUSSI L'AVATAR
     
     class Meta:
         model = Maison
-        fields = '__all__'
+        # ❌ NE PAS UTILISER '__all__' SI TU AS DES CHAMPS PERSONNALISÉS
+        fields = [
+            'id', 'titre', 'description', 'prix', 'type_maison', 'categorie',
+            'nombre_chambres', 'nombre_salles_de_bain', 'surface',
+            'quartier', 'ville', 'pays', 'date_creation',
+            'photos', 'videos', 'commentaires',
+            'likes_count', 'commentaires_count', 'is_liked', 'is_favori', 'note_moyenne',
+            'owner_name', 'owner_avatar',  # ← INCLUS ICI
+            # ... ajoute tous les autres champs dont tu as besoin
+        ]
         read_only_fields = ['id', 'date_creation', 'date_modification', 'vue_count']
     
+    def get_owner_avatar(self, obj):
+        if obj.owner and obj.owner.avatar:
+            return obj.owner.avatar.url
+        return None
     def get_likes_count(self, obj):
         return obj.likes.count()
     
