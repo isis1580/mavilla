@@ -7,9 +7,13 @@ services:
     buildCommand: |
       pip install -r requirements.txt &&
       python manage.py collectstatic --noinput
+<<<<<<< HEAD
     startCommand: python manage.py migrate --noinput
       python create_superuser.py
       gunicorn villana.wsgi:application --bind 0.0.0.0:$PORT
+=======
+    startCommand: python manage.py migrate --noinput && gunicorn villana.wsgi:application --bind 0.0.0.0:$PORT
+>>>>>>> c0f745e158148d15d1210e446c4fb5019886c52d
     envVars:
       - key: DATABASE_URL
         fromDatabase:
