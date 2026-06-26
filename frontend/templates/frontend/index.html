@@ -18,12 +18,46 @@
     <div id="root"></div>
     <script>
         console.log("Villana app starting...");
-        // Afficher un message pendant le chargement
-        document.getElementById('root').innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;color:#6C63FF;font-size:24px;">⏳ Chargement de Villana...</div>';
+
+        // Debug global errors
+        window.onerror = function(msg, url, line, col, error) {
+            console.error("Error: " + msg + "\nURL: " + url + "\nLine: " + line);
+            var debugDiv = document.createElement('div');
+            debugDiv.style.cssText = 'position:fixed;top:0;left:0;background:red;color:white;z-index:9999;padding:10px;font-size:12px;';
+            debugDiv.innerHTML = 'Erreur JS: ' + msg + ' (L' + line + ')';
+            document.body.appendChild(debugDiv);
+            return false;
+        };
+
+        // Check storage access
+        try {
+            localStorage.setItem('debug_check', 'ok');
+            localStorage.removeItem('debug_check');
+            console.log("Storage access: OK");
+        } catch(e) {
+            console.error("Storage access BLOCKED:", e);
+            var storageDiv = document.createElement('div');
+            storageDiv.style.cssText = 'position:fixed;top:40px;left:0;background:orange;color:black;z-index:9999;padding:10px;';
+            storageDiv.innerHTML = '⚠️ Accès au stockage bloqué par le navigateur. L\'app risque de ne pas fonctionner.';
+            document.body.appendChild(storageDiv);
+        }
+
+        document.getElementById('root').innerHTML = '<div id="loading-spinner" style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;color:#6C63FF;font-size:20px;flex-direction:column;">' +
+            '<div>⏳ Chargement de Villana...</div>' +
+            '<div style="font-size:12px;margin-top:10px;color:#999;">Si cet écran reste affiché, vérifiez votre connexion.</div>' +
+            '</div>';
     </script>
     <script src="{% static 'frontend/bundle.web.js' %}"></script>
     <script>
         console.log("Bundle loaded.");
+        // Si le spinner est toujours là après 5 secondes, il y a un problème
+        setTimeout(function() {
+            var spinner = document.getElementById('loading-spinner');
+            if (spinner) {
+                console.warn("L'application semble bloquée au chargement.");
+                spinner.innerHTML += '<div style="color:red;margin-top:20px;font-size:14px;">L\'application prend trop de temps à démarrer.</div>';
+            }
+        }, 8000);
     </script>
 </body>
 </html>
