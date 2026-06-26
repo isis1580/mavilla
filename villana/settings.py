@@ -78,7 +78,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'maison.views.SimpleDebugMiddleware',  # ← AJOUTE ICI
-    
+
 ]
 MIDDLEWARE.append('maison.views.SimpleDebugMiddleware')
 # =========================
@@ -89,7 +89,7 @@ ROOT_URLCONF = 'villana.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'frontend/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -147,7 +147,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
+STATICFILES_DIRS = [
+    BASE_DIR / 'frontend/static',
+]
 # Media files (stockés sur Cloudinary)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -155,30 +157,14 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # =========================
 # CORS Configuration
 # =========================
-CORS_ALLOWED_ORIGINS = []
+# =========================
+# CORS Configuration
+# =========================
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS if origin.strip()]
 
-# Charger les origines depuis .env
-env_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
-if env_origins:
-    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in env_origins.split(",")]
-
-# En développement, autoriser aussi les origines Expo
-if DEBUG:
-    CORS_ALLOWED_ORIGINS.extend([
-        "exp://192.168.43.65:8081",
-        "exp://localhost:8081",
-        "exp://127.0.0.1:8081",
-        "http://192.168.43.65:8081",
-        "http://192.168.43.65:19006",  # Expo Web
-    ])
-    
-    # Autoriser tous les schémas Expo en dev
-    CORS_ALLOWED_ORIGIN_REGEXES = [
-        r"^exp://.*$",
-        r"^http://192\.168\.\d{1,3}\.\d{1,3}:\d+$",
-        r"^http://localhost:\d+$",
-        r"^http://127\.0\.0\.1:\d+$",
-    ]
+# Pour le développement UNIQUEMENT (à retirer en production)
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
@@ -194,16 +180,12 @@ CORS_ALLOW_HEADERS = [
     'x-expo-version',
 ]
 
-# CSRF trusted origins
-CSRF_TRUSTED_ORIGINS = []
-if env_origins:
-    # Convertir http:// en https:// pour CSRF
-    for origin in CORS_ALLOWED_ORIGINS:
-        if origin.startswith('http://'):
-            CSRF_TRUSTED_ORIGINS.append(origin.replace('http://', 'https://'))
-        else:
-            CSRF_TRUSTED_ORIGINS.append(origin)
-
+# CSRF trusted origins (simplifié)
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "https://mavilla.onrender.com",
+]
 # =========================
 # REST FRAMEWORK
 # =========================

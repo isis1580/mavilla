@@ -3,6 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from maison.views import *
 from maison.admin import admin_site
+from frontend.views import FrontendAppView
 
 router = DefaultRouter()
 router.register(r'maisons', MaisonViewSet, basename='maison')
@@ -21,7 +22,7 @@ urlpatterns = [
     path('django-admin/', admin.site.urls),
     
     # Home
-    path('', home, name='home'),
+    path('', FrontendAppView.as_view(), name='home'),  # ← Page d'accueil
 
     # Auth et endpoints spécifiques - AVANT le router
     path('register/', UserRegistrationView.as_view(), name='register'),
