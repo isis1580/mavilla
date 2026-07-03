@@ -161,6 +161,7 @@ CORS_ALLOW_CREDENTIALS = True
 # Liste explicite pour la sécurité et CSRF
 ALLOWED_ORIGINS_LIST = [
     "http://localhost:8000",
+    "http://localhost:5761",
     "http://127.0.0.1:8000",
     "https://mavilla.onrender.com",
 ]

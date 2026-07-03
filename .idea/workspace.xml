@@ -6,28 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="be9030b2-caba-43c5-844a-0a931c67742f" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/FontAwesome.ttf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/Ionicons.ttf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/MaterialCommunityIcons.ttf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/MaterialDesignIcons.ttf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/MaterialIcons.ttf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/back-icon-mask.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/back-icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/bundle.web.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/bundle.web.js.LICENSE.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/bundle.web.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/clear-icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/close-icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/niger.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/placeholder.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/profil.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/search-icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/vicon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/viconcol.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/villanaicon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/templates/frontend/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/templates/frontend/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
