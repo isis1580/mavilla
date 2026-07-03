@@ -1,46 +1,21 @@
 <!DOCTYPE html>
-<html lang="fr" style="height: 100%; overflow: hidden;">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
     <title>Villana</title>
     {% load static %}
-    <style>
-        /* Reset complet et sécurisé */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body, html, #root {
-            width: 100%;
-            height: 100%;
-            background-color: #f5f5f5;
-            /* On laisse React gérer le scroll interne */
-            overflow: hidden;
-        }
-
-        #root {
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Supprime le blocage des clics sur les boutons */
-        [role="button"], .css-cursor-18t94o4 {
-            cursor: pointer !important;
-            pointer-events: auto !important;
-        }
-    </style>
+    <base href="/">
+    <meta name="description" content="Villana app">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="villana">
+    <link rel="apple-touch-icon" href="{% static 'frontend/icons/Icon-192.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'frontend/favicon.png' %}">
+    <link rel="manifest" href="{% static 'frontend/manifest.json' %}">
 </head>
 <body>
-    <div id="root"></div>
-    <script>
-        console.log("Villana app starting...");
-        window.onerror = function(msg, url, line) {
-            console.error("Error: " + msg + " at " + line);
-            return false;
-        };
-    </script>
-    <script src="{% static 'frontend/bundle.web.js' %}"></script>
-    <script>
-        console.log("Bundle loaded.");
-    </script>
+    <script src="{% static 'frontend/flutter_bootstrap.js' %}" async></script>
 </body>
 </html>
