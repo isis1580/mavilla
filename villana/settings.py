@@ -153,10 +153,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-# Empêche le build d'échouer sur Render à cause des fichiers .map manquants de Flutter
-WHITENOISE_MANIFEST_STRICT = False
-
-
 # =========================
 # CORS Configuration
 # =========================
