@@ -150,18 +150,12 @@ class MaisonSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Maison
-        fields = [
-            'id', 'titre', 'description', 'prix', 'prix_promotion', 'type_maison', 'categorie',
-            'nombre_chambres', 'nombre_salles_de_bain', 'nombre_salon', 'nombre_cuisines', 'surface',
-            'piscine', 'jardin', 'garage', 'climatiseur', 'internet', 'meuble',
-            'quartier', 'ville', 'pays', 'adresse_complete', 'date_creation', 'date_modification',
-            'is_active', 'is_premium', 'vue_count',
-            'photos', 'videos', 'commentaires',
-            'likes_count', 'commentaires_count', 'is_liked', 'is_favori', 'note_moyenne',
-            'owner_name', 'owner_avatar',
+        fields = '__all__'
+        read_only_fields = [
+            'id', 'date_creation', 'date_modification', 'vue_count',
+            'owner', 'owner_name', 'owner_avatar', 'is_active', 'adresse_complete'
         ]
-        read_only_fields = ['id', 'date_creation', 'date_modification', 'vue_count', 'owner_name', 'owner_avatar']
-    
+
     def get_owner_avatar(self, obj):
         if obj.owner and obj.owner.avatar:
             return obj.owner.avatar.url
@@ -191,20 +185,24 @@ class MaisonSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         request = self.context['request']
+        # Forcer l'owner et l'activation
         validated_data['owner'] = request.user if request.user.is_authenticated else None
+        validated_data['is_active'] = True
+
+        # Générer l'adresse complète automatiquement
+        quartier = validated_data.get('quartier', '')
+        ville = validated_data.get('ville', '')
+        validated_data['adresse_complete'] = f"{quartier}, {ville}".strip(', ')
+
         maison = Maison.objects.create(**validated_data)
         
+        # Gestion des photos
         for index, photo in enumerate(request.FILES.getlist('photos')):
-            Photo.objects.create(
-                maison=maison,
-                photos=photo,
-                ordre=index,
-                is_principale=(index == 0)
-            )
+            Photo.objects.create(maison=maison, photos=photo, ordre=index, is_principale=(index == 0))
         
         for video in request.FILES.getlist('videos'):
             Video.objects.create(maison=maison, video=video)
-        
+
         return maison
 
 # =========================
@@ -329,7 +327,7 @@ class HotelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hotel
         fields = '__all__'
-        read_only_fields = ['id', 'date_creation', 'note_moyenne']
+        read_only_fields = ['id', 'date_creation', 'note_moyenne', 'owner', 'is_active']
     
     def get_notes_count(self, obj):
         return obj.notes.count()
@@ -337,6 +335,7 @@ class HotelSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context['request']
         validated_data['owner'] = request.user if request.user.is_authenticated else None
+        validated_data['is_active'] = True
         hotel = Hotel.objects.create(**validated_data)
         
         for index, photo in enumerate(request.FILES.getlist('photos')):
@@ -368,11 +367,12 @@ class ResidenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Residence
         fields = '__all__'
-        read_only_fields = ['id', 'date_creation']
+        read_only_fields = ['id', 'date_creation', 'owner', 'is_active']
     
     def create(self, validated_data):
         request = self.context['request']
         validated_data['owner'] = request.user if request.user.is_authenticated else None
+        validated_data['is_active'] = True
         residence = Residence.objects.create(**validated_data)
         
         for index, photo in enumerate(request.FILES.getlist('photos')):
@@ -403,11 +403,12 @@ class ParcelleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Parcelle
         fields = '__all__'
-        read_only_fields = ['id', 'date_creation', 'date_modification']
+        read_only_fields = ['id', 'date_creation', 'date_modification', 'owner', 'is_active']
     
     def create(self, validated_data):
         request = self.context['request']
         validated_data['owner'] = request.user if request.user.is_authenticated else None
+        validated_data['is_active'] = True
         parcelle = Parcelle.objects.create(**validated_data)
         
         for index, photo in enumerate(request.FILES.getlist('photos')):
@@ -422,12 +423,18 @@ class ParcelleSerializer(serializers.ModelSerializer):
 # PUBLICITES
 # =========================
 class PubliciteSerializer(serializers.ModelSerializer):
-    photos = serializers.ImageField(required=False, allow_null=True)
-
     class Meta:
         model = Publicite
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'is_active', 'clic_count']
+
+    def create(self, validated_data):
+        validated_data['is_active'] = True
+        # Si plusieurs photos sont envoyées, on prend la première pour le modèle Publicite
+        request = self.context.get('request')
+        if request and request.FILES.getlist('photos'):
+            validated_data['photos'] = request.FILES.getlist('photos')[0]
+        return super().create(validated_data)
 
 # =========================
 # PAYS

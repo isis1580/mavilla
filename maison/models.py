@@ -178,7 +178,7 @@ class Residence(LocationMixin):
     ville = models.CharField(max_length=255)
     pays = models.CharField(max_length=100)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_residences")
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_residences", null=True, blank=True)
     type_residence = models.CharField(max_length=20, choices=TYPE_RESIDENCE_CHOICES)
     nom = models.CharField(max_length=255)
     description = models.TextField()
