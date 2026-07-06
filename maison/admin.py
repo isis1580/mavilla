@@ -321,6 +321,23 @@ class PaysAdmin(admin.ModelAdmin):
     drapeau_preview.short_description = 'Drapeau'
 
 # =========================
+# Admin pour App Version
+# =========================
+class AppVersionAdmin(admin.ModelAdmin):
+    list_display = ('version', 'is_mandatory', 'date_publication')
+    list_filter = ('is_mandatory', 'date_publication')
+    search_fields = ('version', 'description')
+    readonly_fields = ('date_publication',)
+    fieldsets = (
+        ('Version Info', {
+            'fields': ('version', 'url', 'description')
+        }),
+        ('Paramètres', {
+            'fields': ('is_mandatory', 'date_publication')
+        }),
+    )
+
+# =========================
 # Dashboard Admin Personnalisé
 # =========================
 class VillanaAdminSite(admin.AdminSite):
@@ -368,6 +385,7 @@ admin_site.register(Like)
 admin_site.register(HotelNote)
 admin_site.register(DemandeVisite)
 admin_site.register(Statistique)
+admin_site.register(AppVersion, AppVersionAdmin)
 
 # Pour garder la compatibilité avec l'admin Django par défaut
 admin.site.register(User, UserAdmin)
@@ -386,3 +404,4 @@ admin.site.register(Like)
 admin.site.register(HotelNote)
 admin.site.register(DemandeVisite)
 admin.site.register(Statistique)
+admin.site.register(AppVersion, AppVersionAdmin)

@@ -665,3 +665,27 @@ def photo_list_view(request):
 def video_list_view(request):
     videos = list(Video.objects.values())
     return JsonResponse(videos, safe=False)
+
+# =========================
+# APP VERSIONING
+# =========================
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_latest_version(request):
+    """Récupère la dernière version de l'application disponible"""
+    latest = AppVersion.objects.first()
+    if latest:
+        return Response(AppVersionSerializer(latest).data)
+    return Response({"detail": "Aucune version trouvée"}, status=404)
+
+
+
+from rest_framework import viewsets, permissions
+
+class AlerteViewSet(viewsets.ModelViewSet):
+    serializer_class = AlerteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # L'utilisateur ne voit que ses propres alertes
+        return Alerte.objects.filter(user=self.request.user)

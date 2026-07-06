@@ -458,3 +458,85 @@ class Statistique(models.Model):
     class Meta:
         unique_together = ('date', 'type')
         ordering = ['-date']
+
+# =========================
+# APP VERSIONING
+# =========================
+class AppVersion(models.Model):
+    version = models.CharField(max_length=20)  # ex: "1.0.1"
+    url = models.URLField()  # Lien vers l'APK ou le Play Store
+    description = models.TextField(blank=True)
+    is_mandatory = models.BooleanField(default=False)  # Si l'update est obligatoire
+    date_publication = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_publication']
+
+    def __str__(self):
+        return f"Version {self.version}"
+
+
+class Alerte(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='alertes')
+    type_bien = models.CharField(max_length=20) # 'maison' ou 'parcelle'
+    type_transaction = models.CharField(max_length=20, default='location') # 'vente' ou 'location'
+    prix_max = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    quartier = models.CharField(max_length=255, blank=True)
+    nombre_chambres = models.IntegerField(null=True, blank=True)
+    nombre_salles_bain = models.IntegerField(null=True, blank=True)
+    surface = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    dimension = models.CharField(max_length=100, blank=True)
+    is_active = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Alerte {self.type_bien} - {self.user.username}"
+
+
+
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Maison)
+def notifier_alertes_maison(sender, instance, created, **kwargs):
+    if created and instance.is_active:
+        # Chercher les alertes qui correspondent
+        alertes = Alerte.objects.filter(
+            type_bien='maison',
+            type_transaction=instance.type_maison,
+            is_active=True
+        )
+        
+        # Filtre optionnel sur le prix
+        if instance.prix:
+            alertes = alertes.filter(Q(prix_max__gte=instance.prix) | Q(prix_max__isnull=True))
+
+        for alerte in alertes:
+            Notification.objects.create(
+                user=alerte.user,
+                title="🎯 Nouvelle maison trouvée !",
+                body=f"Une maison correspondant à vos critères vient d'être publiée à {instance.ville} ({instance.quartier}).",
+                type="system",
+                data={"route": f"/maison/{instance.id}"}
+            )
+
+@receiver(post_save, sender=Parcelle)
+def notifier_alertes_parcelle(sender, instance, created, **kwargs):
+    if created and instance.is_active:
+        alertes = Alerte.objects.filter(
+            type_bien='parcelle',
+            is_active=True
+        )
+        
+        if instance.prix:
+            alertes = alertes.filter(Q(prix_max__gte=instance.prix) | Q(prix_max__isnull=True))
+
+        for alerte in alertes:
+            Notification.objects.create(
+                user=alerte.user,
+                title="🌍 Nouveau terrain trouvé !",
+                body=f"Une parcelle de {instance.surface}m² est disponible à {instance.quartier}.",
+                type="system",
+                data={"route": f"/parcelle/{instance.id}"}
+            )

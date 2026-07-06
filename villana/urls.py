@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include, re_path
+from django.views.generic import RedirectView
 from rest_framework.routers import DefaultRouter
 from maison.views import *
 from maison.admin import admin_site
@@ -15,13 +16,17 @@ router.register(r'contacts', ContactViewSet, basename='contact')
 router.register(r'demandes-visite', DemandeVisiteViewSet, basename='demandevisite')
 router.register(r'messages', MessageViewSet, basename='message')
 router.register(r'notifications', NotificationViewSet, basename='notification')
+router.register(r'alertes', AlerteViewSet, basename='alerte')
 
 urlpatterns = [
-    # Admin
+    # ✅ Redirection /admin → /admin/
+    path('admin', RedirectView.as_view(url='/admin/', permanent=True)),
+    
+    # ✅ ADMIN
     path('admin/', admin_site.urls),
     path('django-admin/', admin.site.urls),
     
-    # Authentification et endpoints spécifiques (Prioritaires sur le router)
+    # ✅ API
     path('api/register/', UserRegistrationView.as_view(), name='register'),
     path('api/login/', UserLoginView.as_view(), name='login'),
     path('api/profile/', UserProfileView.as_view(), name='profile'),
@@ -30,14 +35,13 @@ urlpatterns = [
     path('api/detect_country/', detect_country, name='detect-country'),
     path('api/dashboard/', DashboardView.as_view(), name='dashboard'),
     path('api/statistiques-globales/', statistiques_globales, name='statistiques-globales'),
-
-    # API via Router
+    path('api/app-version/latest/', get_latest_version, name='latest-version'),
     path('api/', include(router.urls)),
-
-    # Frontend React - La page d'accueil doit être ICI
+    
+    # ✅ FRONTEND
     path('', FrontendAppView.as_view(), name='home'),
-
-    # Catch-all pour React (doit être en DERNIER)
-    # Cela permet à React Router de gérer les URLs comme /login, /hotels, etc.
-    re_path(r'^.*$', FrontendAppView.as_view()),
+    
+    # ✅ CATCH-ALL - UNIQUEMENT POUR LE FRONTEND
+    # Exclure admin, static, media, api
+    re_path(r'^(?!(admin|static|media|api)/).*$', FrontendAppView.as_view()),
 ]

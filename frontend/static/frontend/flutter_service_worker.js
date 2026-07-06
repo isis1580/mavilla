@@ -29,3 +29,17 @@ self.addEventListener('activate', (event) => {
     })()
   );
 });
+
+// Bypass the service worker for Django admin, API and other server-handled paths
+self.addEventListener('fetch', (event) => {
+  try {
+    const url = new URL(event.request.url);
+    const pathname = url.pathname || '';
+    if (pathname.startsWith('/admin') || pathname.startsWith('/django-admin') || pathname.startsWith('/api')) {
+      // Let the request go to network / server as usual
+      return;
+    }
+  } catch (e) {
+    // If URL parsing fails, do nothing and let other handlers (if any) manage the request
+  }
+});
