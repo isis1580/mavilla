@@ -326,6 +326,16 @@ class HotelViewSet(viewsets.ModelViewSet):
         return {"request": self.request}
 
     # -------------------------------
+    # Récupérer les notes d'un hôtel
+    # -------------------------------
+    @action(detail=True, methods=['GET'], permission_classes=[AllowAny])
+    def notes(self, request, pk=None):
+        hotel = self.get_object()
+        notes = hotel.notes.all().order_by('-date_creation')
+        serializer = HotelNoteSerializer(notes, many=True)
+        return Response(serializer.data)
+
+    # -------------------------------
     # Noter un hôtel
     # -------------------------------
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
