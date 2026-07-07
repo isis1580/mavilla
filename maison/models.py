@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q, Avg
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
