@@ -40,6 +40,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_proprietaire = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
+
+    # Nouveaux champs pour le profil complet
+    bio = models.TextField(blank=True, null=True)
+    adresse = models.CharField(max_length=255, blank=True, null=True)
+    ville = models.CharField(max_length=100, blank=True, null=True)
+    pays = models.CharField(max_length=100, blank=True, null=True)
+
     date_joined = models.DateTimeField(auto_now_add=True)
 
     USERNAME_FIELD = 'phone_number'
