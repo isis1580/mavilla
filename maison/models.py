@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from cloudinary.models import CloudinaryField
 import uuid
 
@@ -104,7 +106,12 @@ class Maison(LocationMixin):
     is_active = models.BooleanField(default=True)
     is_premium = models.BooleanField(default=False)
     vue_count = models.PositiveIntegerField(default=0)
-    
+
+    # Relations génériques
+    likes = GenericRelation('Like')
+    favoris = GenericRelation('Favori')
+    commentaires = GenericRelation('Commentaire')
+
     def __str__(self):
         return f'{self.titre or self.type_maison} - {self.ville}'
     
@@ -129,11 +136,16 @@ class Video(models.Model):
         return f'Vidéo de {self.maison}'
 
 # =========================
-# COMMENTAIRES & NOTES
+# COMMENTAIRES, LIKES & FAVORIS (GÉNÉRIQUES)
 # =========================
 class Commentaire(models.Model):
-    maison = models.ForeignKey(Maison, related_name='commentaires', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # Generic Foreign Key
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     texte = models.TextField()
     note = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)],
@@ -146,22 +158,35 @@ class Commentaire(models.Model):
     
     class Meta:
         ordering = ['-date_creation']
+        indexes = [
+            models.Index(fields=["content_type", "object_id"]),
+        ]
 
 class Like(models.Model):
-    maison = models.ForeignKey(Maison, on_delete=models.CASCADE, related_name='likes')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # Generic Foreign Key
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     date_creation = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        unique_together = ('maison', 'user')
+        unique_together = ('user', 'content_type', 'object_id')
 
 class Favori(models.Model):
-    maison = models.ForeignKey(Maison, on_delete=models.CASCADE, related_name='favoris')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # Generic Foreign Key
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     date_creation = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        unique_together = ('maison', 'user')
+        unique_together = ('user', 'content_type', 'object_id')
         verbose_name = 'Favori'
         verbose_name_plural = 'Favoris'
 
@@ -187,7 +212,12 @@ class Residence(LocationMixin):
     nombre_appartements = models.PositiveIntegerField(default=0)
     date_creation = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    
+
+    # Relations génériques
+    likes = GenericRelation('Like')
+    favoris = GenericRelation('Favori')
+    commentaires = GenericRelation('Commentaire')
+
     def __str__(self):
         return self.nom
 
@@ -236,13 +266,18 @@ class Hotel(LocationMixin):
     date_creation = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     note_moyenne = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
-    
+
+    # Relations génériques
+    likes = GenericRelation('Like')
+    favoris = GenericRelation('Favori')
+    commentaires = GenericRelation('Commentaire')
+
     def __str__(self):
         return f"{self.titre} ({'★' * self.categorie})"
     
     def update_note_moyenne(self):
         from django.db.models import Avg
-        moyenne = self.notes.aggregate(Avg('note'))['note__avg'] or 0.0
+        moyenne = self.commentaires.aggregate(Avg('note'))['note__avg'] or 0.0
         self.note_moyenne = round(moyenne, 2)
         self.save(update_fields=['note_moyenne'])
 
@@ -254,18 +289,6 @@ class HotelPhoto(models.Model):
     
     class Meta:
         ordering = ['ordre', 'id']
-
-class HotelNote(models.Model):
-    hotel = models.ForeignKey(Hotel, related_name='notes', on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    note = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)]
-    )
-    commentaire = models.TextField(blank=True)
-    date_creation = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        unique_together = ('hotel', 'user')
 
 # =========================
 # PARCELLES AMÉLIORÉES
@@ -292,7 +315,12 @@ class Parcelle(LocationMixin):
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    
+
+    # Relations génériques
+    likes = GenericRelation('Like')
+    favoris = GenericRelation('Favori')
+    commentaires = GenericRelation('Commentaire')
+
     def __str__(self):
         return f"{self.titre or self.type_parcelle} - {self.surface}m² - {self.ville}"
 

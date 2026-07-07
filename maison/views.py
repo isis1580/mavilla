@@ -9,6 +9,7 @@ from django.db import models
 from django.db.models import Count, Avg, Sum, Q
 from django.utils import timezone
 
+from django.contrib.contenttypes.models import ContentType
 import logging
 import traceback
 from datetime import datetime, timedelta
@@ -33,6 +34,134 @@ class SimpleDebugMiddleware:
             'traceback': error_trace.split('\n')
         }, status=500)
 logger = logging.getLogger(__name__)
+
+# =========================
+# MIXINS
+# =========================
+class PropertyActionMixin:
+    """Mixin pour gérer les likes, favoris et commentaires génériques"""
+
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
+    def like(self, request, pk=None):
+        obj = self.get_object()
+        user = request.user
+        content_type = ContentType.objects.get_for_model(obj)
+
+        like_obj = Like.objects.filter(user=user, content_type=content_type, object_id=obj.id).first()
+        liked = False
+        if like_obj:
+            like_obj.delete()
+        else:
+            Like.objects.create(user=user, content_type=content_type, object_id=obj.id)
+            liked = True
+
+            # Notification au propriétaire
+            if hasattr(obj, 'owner') and obj.owner and obj.owner != user:
+                model_name = obj._meta.verbose_name.lower()
+                Notification.objects.create(
+                    user=obj.owner,
+                    title=f"Votre {model_name} a été aimé(e)",
+                    body=f"{user.username} a aimé votre {model_name}",
+                    type="like",
+                    data={f"{model_name}_id": str(obj.id)}
+                )
+
+        return Response({'liked': liked, 'likes_count': obj.likes.count()}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
+    def favori(self, request, pk=None):
+        obj = self.get_object()
+        user = request.user
+        content_type = ContentType.objects.get_for_model(obj)
+
+        favori_obj = Favori.objects.filter(user=user, content_type=content_type, object_id=obj.id).first()
+        favori = False
+        if favori_obj:
+            favori_obj.delete()
+        else:
+            Favori.objects.create(user=user, content_type=content_type, object_id=obj.id)
+            favori = True
+
+        return Response({'favori': favori}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
+    def commenter(self, request, pk=None):
+        obj = self.get_object()
+        user = request.user
+        texte = request.data.get('texte')
+        note = request.data.get('note')
+        content_type = ContentType.objects.get_for_model(obj)
+
+        if not texte:
+            return Response({'error': 'Le texte du commentaire est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        commentaire = Commentaire.objects.create(
+            content_type=content_type,
+            object_id=obj.id,
+            user=user,
+            texte=texte,
+            note=note
+        )
+
+        # Mettre à jour la note moyenne si c'est un hôtel
+        if hasattr(obj, 'update_note_moyenne'):
+            obj.update_note_moyenne()
+
+        # Notification au propriétaire
+        if hasattr(obj, 'owner') and obj.owner and obj.owner != user:
+            model_name = obj._meta.verbose_name.lower()
+            Notification.objects.create(
+                user=obj.owner,
+                title=f"Nouveau commentaire sur votre {model_name}",
+                body=f"{user.username} a commenté votre {model_name}",
+                type="comment",
+                data={f"{model_name}_id": str(obj.id), "commentaire_id": commentaire.id}
+            )
+
+        serializer = CommentaireSerializer(commentaire)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['GET'], permission_classes=[AllowAny])
+    def commentaires(self, request, pk=None):
+        obj = self.get_object()
+        content_type = ContentType.objects.get_for_model(obj)
+        commentaires = Commentaire.objects.filter(
+            content_type=content_type,
+            object_id=obj.id,
+            is_approved=True
+        ).order_by('-date_creation')
+        serializer = CommentaireSerializer(commentaires, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
+    def mes_favoris(self, request):
+        user = request.user
+        content_type = ContentType.objects.get_for_model(self.queryset.model)
+        favoris = Favori.objects.filter(user=user, content_type=content_type)
+
+        # Récupérer les IDs des objets favoris
+        object_ids = favoris.values_list('object_id', flat=True)
+        queryset = self.queryset.model.objects.filter(id__in=object_ids)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['GET'], permission_classes=[AllowAny])
+    def statistiques(self, request, pk=None):
+        obj = self.get_object()
+        data = {
+            'vue_count': getattr(obj, 'vue_count', 0),
+            'likes_count': obj.likes.count(),
+            'commentaires_count': obj.commentaires.filter(is_approved=True).count(),
+            'note_moyenne': obj.commentaires.filter(note__isnull=False)
+                .aggregate(Avg('note'))['note__avg'] or 0.0
+        }
+        return Response(data)
 
 # =========================
 # PAGINATION
@@ -119,7 +248,7 @@ class UserProfileView(APIView):
 # =========================
 # MAISONS
 # =========================
-class MaisonViewSet(viewsets.ModelViewSet):
+class MaisonViewSet(PropertyActionMixin, viewsets.ModelViewSet):
     queryset = Maison.objects.filter(is_active=True)
     serializer_class = MaisonSerializer
     pagination_class = StandardPagination
@@ -142,7 +271,13 @@ class MaisonViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        # Si on demande les annonces d'un owner spécifique, on montre TOUT (même inactif)
+        owner_id = self.request.query_params.get('owner')
+        if owner_id:
+            return Maison.objects.filter(owner_id=owner_id).order_by('-date_creation')
+
+        # Sinon, comportement normal : uniquement les actives
+        queryset = Maison.objects.filter(is_active=True)
         
         # Filtres de base
         type_maison = self.request.query_params.get('type')
@@ -173,132 +308,21 @@ class MaisonViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             queryset = Maison.objects.filter(is_active=True)
             queryset = serializer.search(queryset)
-            
+
             # Pagination
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer_result = self.get_serializer(page, many=True)
                 return self.get_paginated_response(serializer_result.data)
-            
+
             serializer_result = self.get_serializer(queryset, many=True)
             return Response(serializer_result.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # -------------------------------
-    # Like (auth requis)
-    # -------------------------------
-    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
-    def like(self, request, pk=None):
-        maison = self.get_object()
-        user = request.user
-
-        liked = False
-        like_obj = maison.likes.filter(user=user).first()
-        if like_obj:
-            like_obj.delete()
-        else:
-            Like.objects.create(maison=maison, user=user)
-            liked = True
-            # Notification au propriétaire
-            if maison.owner and maison.owner != user:
-                Notification.objects.create(
-                    user=maison.owner,
-                    title=f"Votre maison a été aimée",
-                    body=f"{user.username} a aimé votre maison",
-                    type="like",
-                    data={"maison_id": str(maison.id)}
-                )
-
-        likes_count = maison.likes.count()
-        return Response({'liked': liked, 'likes_count': likes_count}, status=status.HTTP_200_OK)
-
-    # -------------------------------
-    # Favoris
-    # -------------------------------
-    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
-    def favori(self, request, pk=None):
-        maison = self.get_object()
-        user = request.user
-
-        favori = False
-        favori_obj = maison.favoris.filter(user=user).first()
-        if favori_obj:
-            favori_obj.delete()
-        else:
-            Favori.objects.create(maison=maison, user=user)
-            favori = True
-
-        return Response({'favori': favori}, status=status.HTTP_200_OK)
-
-    # -------------------------------
-    # Commentaire (auth requis)
-    # -------------------------------
-    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
-    def commenter(self, request, pk=None):
-        maison = self.get_object()
-        user = request.user
-        texte = request.data.get('texte')
-        note = request.data.get('note')
-
-        if not texte:
-            return Response({'error': 'Le texte du commentaire est requis.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        commentaire = Commentaire.objects.create(
-            maison=maison, 
-            user=user, 
-            texte=texte,
-            note=note
-        )
-        
-        # Notification au propriétaire
-        if maison.owner and maison.owner != user:
-            Notification.objects.create(
-                user=maison.owner,
-                title="Nouveau commentaire sur votre maison",
-                body=f"{user.username} a commenté votre maison",
-                type="comment",
-                data={"maison_id": str(maison.id), "commentaire_id": commentaire.id}
-            )
-        
-        serializer = CommentaireSerializer(commentaire)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    @action(detail=True, methods=['GET'], permission_classes=[AllowAny])
-    def commentaires(self, request, pk=None):
-        maison = self.get_object()
-        commentaires = maison.commentaires.filter(is_approved=True).order_by('-date_creation')
-        serializer = CommentaireSerializer(commentaires, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    # -------------------------------
-    # Maisons favorites de l'utilisateur
-    # -------------------------------
-    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
-    def mes_favoris(self, request):
-        favoris = Favori.objects.filter(user=request.user).select_related('maison')
-        maisons = [favori.maison for favori in favoris]
-        serializer = self.get_serializer(maisons, many=True)
-        return Response(serializer.data)
-
-    # -------------------------------
-    # Statistiques maison
-    # -------------------------------
-    @action(detail=True, methods=['GET'], permission_classes=[AllowAny])
-    def statistiques(self, request, pk=None):
-        maison = self.get_object()
-        data = {
-            'vue_count': maison.vue_count,
-            'likes_count': maison.likes.count(),
-            'commentaires_count': maison.commentaires.filter(is_approved=True).count(),
-            'note_moyenne': maison.commentaires.filter(note__isnull=False)
-                .aggregate(Avg('note'))['note__avg'] or 0.0
-        }
-        return Response(data)
-
 # =========================
 # PARCELLES
 # =========================
-class ParcelleViewSet(viewsets.ModelViewSet):
+class ParcelleViewSet(PropertyActionMixin, viewsets.ModelViewSet):
     queryset = Parcelle.objects.filter(is_active=True)
     serializer_class = ParcelleSerializer
     pagination_class = StandardPagination
@@ -307,13 +331,19 @@ class ParcelleViewSet(viewsets.ModelViewSet):
     ordering_fields = ['prix', 'date_creation', 'surface']
     ordering = ['-date_creation']
 
+    def get_queryset(self):
+        owner_id = self.request.query_params.get('owner')
+        if owner_id:
+            return Parcelle.objects.filter(owner_id=owner_id).order_by('-date_creation')
+        return super().get_queryset()
+
     def get_serializer_context(self):
         return {"request": self.request}
 
 # =========================
 # HOTELS
 # =========================
-class HotelViewSet(viewsets.ModelViewSet):
+class HotelViewSet(PropertyActionMixin, viewsets.ModelViewSet):
     queryset = Hotel.objects.filter(is_active=True)
     serializer_class = HotelSerializer
     pagination_class = StandardPagination
@@ -322,49 +352,14 @@ class HotelViewSet(viewsets.ModelViewSet):
     ordering_fields = ['prix_nuit', 'note_moyenne', 'date_creation']
     ordering = ['-date_creation']
 
+    def get_queryset(self):
+        owner_id = self.request.query_params.get('owner')
+        if owner_id:
+            return Hotel.objects.filter(owner_id=owner_id).order_by('-date_creation')
+        return super().get_queryset()
+
     def get_serializer_context(self):
         return {"request": self.request}
-
-    # -------------------------------
-    # Récupérer les notes d'un hôtel
-    # -------------------------------
-    @action(detail=True, methods=['GET'], permission_classes=[AllowAny])
-    def notes(self, request, pk=None):
-        hotel = self.get_object()
-        notes = hotel.notes.all().order_by('-date_creation')
-        serializer = HotelNoteSerializer(notes, many=True)
-        return Response(serializer.data)
-
-    # -------------------------------
-    # Noter un hôtel
-    # -------------------------------
-    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
-    def noter(self, request, pk=None):
-        hotel = self.get_object()
-        user = request.user
-        note = request.data.get('note')
-        commentaire = request.data.get('commentaire', '')
-
-        if not note or not 1 <= int(note) <= 5:
-            return Response({'error': 'Une note valide entre 1 et 5 est requise.'}, 
-                           status=status.HTTP_400_BAD_REQUEST)
-
-        # Vérifier si l'utilisateur a déjà noté
-        note_existante = hotel.notes.filter(user=user).first()
-        if note_existante:
-            note_existante.note = note
-            note_existante.commentaire = commentaire
-            note_existante.save()
-        else:
-            HotelNote.objects.create(
-                hotel=hotel,
-                user=user,
-                note=note,
-                commentaire=commentaire
-            )
-
-        hotel.update_note_moyenne()
-        return Response({'message': 'Note enregistrée', 'note_moyenne': hotel.note_moyenne})
 
     # -------------------------------
     # Recherche hôtels par ville et catégorie
@@ -393,13 +388,19 @@ class HotelViewSet(viewsets.ModelViewSet):
 # =========================
 # RESIDENCES
 # =========================
-class ResidenceViewSet(viewsets.ModelViewSet):
+class ResidenceViewSet(PropertyActionMixin, viewsets.ModelViewSet):
     queryset = Residence.objects.filter(is_active=True)
     serializer_class = ResidenceSerializer
     pagination_class = StandardPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['nom', 'description', 'ville']
     
+    def get_queryset(self):
+        owner_id = self.request.query_params.get('owner')
+        if owner_id:
+            return Residence.objects.filter(owner_id=owner_id).order_by('-date_creation')
+        return super().get_queryset()
+
     def get_serializer_context(self):
         return {"request": self.request}
 

@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import *
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.contenttypes.admin import GenericTabularInline
 
 # =========================
 # Inlines
@@ -60,14 +61,19 @@ class VideoInline(admin.TabularInline):
     model = Video
     extra = 1
 
-class CommentaireInline(admin.TabularInline):
+class CommentaireInline(GenericTabularInline):
     model = Commentaire
     extra = 0
     readonly_fields = ['user', 'date_creation']
     can_delete = True
 
-class HotelNoteInline(admin.TabularInline):
-    model = HotelNote
+class LikeInline(GenericTabularInline):
+    model = Like
+    extra = 0
+    readonly_fields = ['user', 'date_creation']
+
+class FavoriInline(GenericTabularInline):
+    model = Favori
     extra = 0
     readonly_fields = ['user', 'date_creation']
 
@@ -96,7 +102,7 @@ class MaisonAdmin(admin.ModelAdmin):
     list_filter = ('type_maison', 'categorie', 'ville', 'is_active', 'date_creation', VilleListFilter)
     search_fields = ('titre', 'description', 'ville', 'quartier', 'pays')
     readonly_fields = ('vue_count', 'date_creation', 'date_modification')
-    inlines = [PhotoInline, VideoInline, CommentaireInline]
+    inlines = [PhotoInline, VideoInline, CommentaireInline, LikeInline, FavoriInline]
     list_per_page = 20
     fieldsets = (
         ('Informations générales', {
@@ -139,7 +145,7 @@ class ParcelleAdmin(admin.ModelAdmin):
     list_filter = ('type_parcelle', 'ville', 'is_active')
     search_fields = ('titre', 'description', 'ville', 'quartier')
     readonly_fields = ('date_creation', 'date_modification')
-    inlines = [ParcellePhotoInline]
+    inlines = [ParcellePhotoInline, CommentaireInline, LikeInline, FavoriInline]
 
 # =========================
 # Admin pour Hôtel
@@ -150,7 +156,7 @@ class HotelAdmin(admin.ModelAdmin):
     list_filter = ('type_hotel', 'categorie', 'ville', 'is_active')
     search_fields = ('titre', 'description', 'ville', 'pays')
     readonly_fields = ('note_moyenne', 'date_creation')
-    inlines = [HotelPhotoInline, HotelNoteInline]
+    inlines = [HotelPhotoInline, CommentaireInline, LikeInline, FavoriInline]
     
     def categorie_stars(self, obj):
         return '★' * obj.categorie
@@ -165,7 +171,7 @@ class ResidenceAdmin(admin.ModelAdmin):
     list_filter = ('type_residence', 'is_active')
     search_fields = ('nom', 'description', 'ville', 'pays')
     readonly_fields = ('date_creation',)
-    inlines = [ResidencePhotoInline]
+    inlines = [ResidencePhotoInline, CommentaireInline, LikeInline, FavoriInline]
 
 # =========================
 # Admin pour User personnalisé
@@ -226,9 +232,9 @@ class UserAdmin(BaseUserAdmin):
 # Admin pour Commentaire
 # =========================
 class CommentaireAdmin(admin.ModelAdmin):
-    list_display = ('user', 'maison', 'note', 'texte_preview', 'is_approved', 'date_creation')
-    list_filter = ('is_approved', 'date_creation')
-    search_fields = ('texte', 'user__username', 'maison__titre')
+    list_display = ('user', 'content_object', 'note', 'texte_preview', 'is_approved', 'date_creation')
+    list_filter = ('is_approved', 'date_creation', 'content_type')
+    search_fields = ('texte', 'user__username')
     list_editable = ('is_approved',)
     actions = ['approuver_commentaires', 'desapprouver_commentaires']
 
@@ -382,7 +388,6 @@ admin_site.register(Notification, NotificationAdmin)
 admin_site.register(Message, MessageAdmin)
 admin_site.register(Favori)
 admin_site.register(Like)
-admin_site.register(HotelNote)
 admin_site.register(DemandeVisite)
 admin_site.register(Statistique)
 admin_site.register(AppVersion, AppVersionAdmin)
@@ -401,7 +406,6 @@ admin.site.register(Notification, NotificationAdmin)
 admin.site.register(Message, MessageAdmin)
 admin.site.register(Favori)
 admin.site.register(Like)
-admin.site.register(HotelNote)
 admin.site.register(DemandeVisite)
 admin.site.register(Statistique)
 admin.site.register(AppVersion, AppVersionAdmin)

@@ -5,6 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="be9030b2-caba-43c5-844a-0a931c67742f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/maison/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/maison/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/maison/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/maison/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/maison/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/maison/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/maison/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/maison/views.py" afterDir="false" />
     </list>
@@ -53,5 +56,8 @@
       <updated>1782483337897</updated>
     </task>
     <servers />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.py" />
   </component>
 </project>

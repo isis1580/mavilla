@@ -2,6 +2,10 @@ from rest_framework import serializers
 from .models import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Avg, Count, Q
+try:
+    from django.contrib.gis.geos import Point
+except ImportError:
+    Point = None
 import logging
 logger = logging.getLogger(__name__)
 
@@ -124,13 +128,13 @@ class CommentaireSerializer(serializers.ModelSerializer):
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = ['id', 'user', 'maison', 'date_creation']
+        fields = ['id', 'user', 'date_creation']
         read_only_fields = ['user', 'date_creation']
 
 class FavoriSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favori
-        fields = ['id', 'user', 'maison', 'date_creation']
+        fields = ['id', 'user', 'date_creation']
         read_only_fields = ['user', 'date_creation']
 
 # =========================
@@ -305,23 +309,14 @@ class HotelPhotoSerializer(serializers.ModelSerializer):
     def get_photos(self, obj):
         return absolute_url(self.context.get('request'), obj.photos)
 
-class HotelNoteSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='user.username', read_only=True)
-
-    class Meta:
-        model = HotelNote
-        fields = ['id', 'user', 'user_name', 'note', 'commentaire', 'date_creation']
-        read_only_fields = ['user', 'date_creation']
-
-    def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
-        return super().create(validated_data)
-
 class HotelSerializer(serializers.ModelSerializer):
     photos = HotelPhotoSerializer(many=True, read_only=True)
-    notes = HotelNoteSerializer(many=True, read_only=True)
+    commentaires = CommentaireSerializer(many=True, read_only=True)
     note_moyenne = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
-    notes_count = serializers.SerializerMethodField()
+    commentaires_count = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+    is_favori = serializers.SerializerMethodField()
     owner_name = serializers.CharField(source='owner.username', read_only=True)
 
     class Meta:
@@ -329,8 +324,23 @@ class HotelSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['id', 'date_creation', 'note_moyenne', 'owner', 'is_active']
 
-    def get_notes_count(self, obj):
-        return obj.notes.count()
+    def get_commentaires_count(self, obj):
+        return obj.commentaires.count()
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def get_is_liked(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.likes.filter(user=user).exists()
+        return False
+
+    def get_is_favori(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.favoris.filter(user=user).exists()
+        return False
 
     def create(self, validated_data):
         request = self.context['request']
@@ -362,12 +372,35 @@ class ResidencePhotoSerializer(serializers.ModelSerializer):
 
 class ResidenceSerializer(serializers.ModelSerializer):
     photos = ResidencePhotoSerializer(many=True, read_only=True)
+    commentaires = CommentaireSerializer(many=True, read_only=True)
+    commentaires_count = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+    is_favori = serializers.SerializerMethodField()
     owner_name = serializers.CharField(source='owner.username', read_only=True)
 
     class Meta:
         model = Residence
         fields = '__all__'
         read_only_fields = ['id', 'date_creation', 'owner', 'is_active']
+
+    def get_commentaires_count(self, obj):
+        return obj.commentaires.count()
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def get_is_liked(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.likes.filter(user=user).exists()
+        return False
+
+    def get_is_favori(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.favoris.filter(user=user).exists()
+        return False
 
     def create(self, validated_data):
         request = self.context['request']
@@ -398,12 +431,35 @@ class ParcellePhotoSerializer(serializers.ModelSerializer):
 
 class ParcelleSerializer(serializers.ModelSerializer):
     photos = ParcellePhotoSerializer(many=True, read_only=True)
+    commentaires = CommentaireSerializer(many=True, read_only=True)
+    commentaires_count = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+    is_favori = serializers.SerializerMethodField()
     owner_name = serializers.CharField(source='owner.username', read_only=True)
 
     class Meta:
         model = Parcelle
         fields = '__all__'
         read_only_fields = ['id', 'date_creation', 'date_modification', 'owner', 'is_active']
+
+    def get_commentaires_count(self, obj):
+        return obj.commentaires.count()
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def get_is_liked(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.likes.filter(user=user).exists()
+        return False
+
+    def get_is_favori(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.favoris.filter(user=user).exists()
+        return False
 
     def create(self, validated_data):
         request = self.context['request']
@@ -421,32 +477,33 @@ class ParcelleSerializer(serializers.ModelSerializer):
 
 
 # =========================
-# PUBLICITES (CORRIGÉ)
+# PUBLICITES (Fix Photos + Activation)
 # =========================
 class PubliciteSerializer(serializers.ModelSerializer):
-    # On utilise SerializerMethodField pour forcer l'URL absolue (comme PhotoSerializer)
-    photos = serializers.SerializerMethodField()
-
     class Meta:
         model = Publicite
         fields = '__all__'
-        # On met is_active en read_only pour qu'il ne soit pas écrasé par la requête
         read_only_fields = ['id', 'is_active', 'clic_count']
 
-    def get_photos(self, obj):
-        return absolute_url(self.context.get('request'), obj.photos)
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        # S'assurer que l'URL de la photo est absolue
+        if instance.photos:
+            try:
+                ret['photos'] = instance.photos.url
+            except:
+                pass
+        return ret
 
     def create(self, validated_data):
+        validated_data['is_active'] = True # Toujours actif à la création
         request = self.context.get('request')
 
-        # 1. Forcer l'activation ICI (indépendamment de ce que Flutter envoie)
-        validated_data['is_active'] = True
-
-        # 2. Récupérer la photo manuellement car Flutter l'envoie dans une liste 'photos'
+        # Récupère la photo depuis le champ 'photos' envoyé par Flutter (souvent sous forme de liste)
         if request and request.FILES:
             file_list = request.FILES.getlist('photos')
             if file_list:
-                validated_data['photos'] = file_list[0] # On prend la première photo
+                validated_data['photos'] = file_list[0]
 
         return super().create(validated_data)
 # =========================
