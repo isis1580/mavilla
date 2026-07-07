@@ -569,6 +569,15 @@ class NotificationViewSet(viewsets.ModelViewSet):
         Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
         return Response({'status': 'toutes les notifications marquées comme lues'})
 
+    @action(detail=True, methods=['POST', 'PATCH'])
+    def marquer_lu(self, request, pk=None):
+        notification = self.get_object()
+        if notification.user == request.user:
+            notification.is_read = True
+            notification.save()
+            return Response({'status': 'notification marquée lue'})
+        return Response({'error': 'Non autorisé'}, status=403)
+
 # =========================
 # DASHBOARD & STATISTIQUES
 # =========================
