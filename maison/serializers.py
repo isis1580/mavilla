@@ -4,7 +4,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Avg, Count, Q
 try:
     from django.contrib.gis.geos import Point
-except ImportError:
+except (ImportError, Exception):
     Point = None
 import logging
 logger = logging.getLogger(__name__)
@@ -149,7 +149,7 @@ class MaisonSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
     is_favori = serializers.SerializerMethodField()
     note_moyenne = serializers.SerializerMethodField()
-    owner_name = serializers.CharField(source='owner.username', read_only=True)
+    owner_name = serializers.SerializerMethodField()
     owner_avatar = serializers.SerializerMethodField()
 
     class Meta:
@@ -159,6 +159,9 @@ class MaisonSerializer(serializers.ModelSerializer):
             'id', 'date_creation', 'date_modification', 'vue_count',
             'owner', 'owner_name', 'owner_avatar', 'is_active', 'adresse_complete'
         ]
+
+    def get_owner_name(self, obj):
+        return obj.owner.username if obj.owner else "Anonyme"
 
     def get_owner_avatar(self, obj):
         if obj.owner and obj.owner.avatar:
@@ -317,12 +320,15 @@ class HotelSerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     is_favori = serializers.SerializerMethodField()
-    owner_name = serializers.CharField(source='owner.username', read_only=True)
+    owner_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Hotel
         fields = '__all__'
         read_only_fields = ['id', 'date_creation', 'note_moyenne', 'owner', 'is_active']
+
+    def get_owner_name(self, obj):
+        return obj.owner.username if obj.owner else "Anonyme"
 
     def get_commentaires_count(self, obj):
         return obj.commentaires.count()
@@ -377,12 +383,15 @@ class ResidenceSerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     is_favori = serializers.SerializerMethodField()
-    owner_name = serializers.CharField(source='owner.username', read_only=True)
+    owner_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Residence
         fields = '__all__'
         read_only_fields = ['id', 'date_creation', 'owner', 'is_active']
+
+    def get_owner_name(self, obj):
+        return obj.owner.username if obj.owner else "Anonyme"
 
     def get_commentaires_count(self, obj):
         return obj.commentaires.count()
@@ -436,12 +445,15 @@ class ParcelleSerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     is_favori = serializers.SerializerMethodField()
-    owner_name = serializers.CharField(source='owner.username', read_only=True)
+    owner_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Parcelle
         fields = '__all__'
         read_only_fields = ['id', 'date_creation', 'date_modification', 'owner', 'is_active']
+
+    def get_owner_name(self, obj):
+        return obj.owner.username if obj.owner else "Anonyme"
 
     def get_commentaires_count(self, obj):
         return obj.commentaires.count()

@@ -142,8 +142,8 @@ class Commentaire(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # Generic Foreign Key
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.UUIDField()
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.UUIDField(null=True, blank=True)
     content_object = GenericForeignKey('content_type', 'object_id')
 
     texte = models.TextField()
@@ -166,8 +166,8 @@ class Like(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # Generic Foreign Key
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.UUIDField()
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.UUIDField(null=True, blank=True)
     content_object = GenericForeignKey('content_type', 'object_id')
 
     date_creation = models.DateTimeField(auto_now_add=True)
@@ -179,8 +179,8 @@ class Favori(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # Generic Foreign Key
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.UUIDField()
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.UUIDField(null=True, blank=True)
     content_object = GenericForeignKey('content_type', 'object_id')
 
     date_creation = models.DateTimeField(auto_now_add=True)
