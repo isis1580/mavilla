@@ -19,7 +19,7 @@ def absolute_url(request, filefield):
 # -----------------------
 # REGISTRATION & LOGIN
 # -----------------------
-class UserRegistrationSerializer(serializers.ModelSerializer): 
+class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
     avatar = serializers.ImageField(required=False, allow_null=True)
 
@@ -44,16 +44,16 @@ class UserLoginSerializer(serializers.Serializer):
 
     def validate(self, data):
         from django.contrib.auth import authenticate
-        
+
         # Essayer avec le phone_number comme username
         user = authenticate(
             username=data.get('phone_number'),
             password=data.get('password')
         )
-        
+
         if not user:
             raise serializers.ValidationError("Identifiants invalides.")
-        
+
         refresh = RefreshToken.for_user(user)
         return {
             'refresh': str(refresh),
@@ -72,7 +72,7 @@ class UserLoginSerializer(serializers.Serializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'phone_number', 'email', 'avatar', 
+        fields = ['id', 'username', 'phone_number', 'email', 'avatar',
                  'is_proprietaire', 'is_verified', 'date_joined']
         read_only_fields = ['date_joined']
 
@@ -105,18 +105,18 @@ class VideoSerializer(serializers.ModelSerializer):
 class CommentaireSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.username', read_only=True)
     user_avatar = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Commentaire
         fields = ['id', 'user', 'user_name', 'user_avatar', 'texte', 'note',
                  'date_creation', 'date_modification', 'is_approved']
         read_only_fields = ['user', 'date_creation', 'date_modification']
-    
+
     def get_user_avatar(self, obj):
         if obj.user.avatar:
             return obj.user.avatar.url
         return None
-    
+
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
@@ -147,7 +147,7 @@ class MaisonSerializer(serializers.ModelSerializer):
     note_moyenne = serializers.SerializerMethodField()
     owner_name = serializers.CharField(source='owner.username', read_only=True)
     owner_avatar = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Maison
         fields = '__all__'
@@ -163,26 +163,26 @@ class MaisonSerializer(serializers.ModelSerializer):
 
     def get_likes_count(self, obj):
         return obj.likes.count()
-    
+
     def get_commentaires_count(self, obj):
         return obj.commentaires.filter(is_approved=True).count()
-    
+
     def get_is_liked(self, obj):
         user = self.context['request'].user
         if user.is_authenticated:
             return obj.likes.filter(user=user).exists()
         return False
-    
+
     def get_is_favori(self, obj):
         user = self.context['request'].user
         if user.is_authenticated:
             return obj.favoris.filter(user=user).exists()
         return False
-    
+
     def get_note_moyenne(self, obj):
         moyenne = obj.commentaires.filter(note__isnull=False).aggregate(Avg('note'))['note__avg']
         return round(moyenne, 2) if moyenne else 0.0
-    
+
     def create(self, validated_data):
         request = self.context['request']
         # Forcer l'owner et l'activation
@@ -195,11 +195,11 @@ class MaisonSerializer(serializers.ModelSerializer):
         validated_data['adresse_complete'] = f"{quartier}, {ville}".strip(', ')
 
         maison = Maison.objects.create(**validated_data)
-        
+
         # Gestion des photos
         for index, photo in enumerate(request.FILES.getlist('photos')):
             Photo.objects.create(maison=maison, photos=photo, ordre=index, is_principale=(index == 0))
-        
+
         for video in request.FILES.getlist('videos'):
             Video.objects.create(maison=maison, video=video)
 
@@ -226,57 +226,57 @@ class RechercheMaisonSerializer(serializers.Serializer):
     latitude = serializers.DecimalField(max_digits=10, decimal_places=7, required=False)
     longitude = serializers.DecimalField(max_digits=10, decimal_places=7, required=False)
     rayon_km = serializers.IntegerField(min_value=1, default=10, required=False)
-    
+
     def search(self, queryset):
         validated_data = self.validated_data
-        
+
         if validated_data.get('ville'):
             queryset = queryset.filter(ville__icontains=validated_data['ville'])
-        
+
         if validated_data.get('pays'):
             queryset = queryset.filter(pays__icontains=validated_data['pays'])
-        
+
         if validated_data.get('type_maison'):
             queryset = queryset.filter(type_maison=validated_data['type_maison'])
-        
+
         if validated_data.get('categorie'):
             queryset = queryset.filter(categorie=validated_data['categorie'])
-        
+
         if validated_data.get('min_prix'):
             queryset = queryset.filter(prix__gte=validated_data['min_prix'])
-        
+
         if validated_data.get('max_prix'):
             queryset = queryset.filter(prix__lte=validated_data['max_prix'])
-        
+
         if validated_data.get('min_chambres'):
             queryset = queryset.filter(nombre_chambres__gte=validated_data['min_chambres'])
-        
+
         if validated_data.get('min_salles_bain'):
             queryset = queryset.filter(nombre_salles_de_bain__gte=validated_data['min_salles_bain'])
-        
+
         if validated_data.get('min_surface'):
             queryset = queryset.filter(surface__gte=validated_data['min_surface'])
-        
+
         if validated_data.get('max_surface'):
             queryset = queryset.filter(surface__lte=validated_data['max_surface'])
-        
+
         if validated_data.get('piscine') is not None:
             queryset = queryset.filter(piscine=validated_data['piscine'])
-        
+
         if validated_data.get('jardin') is not None:
             queryset = queryset.filter(jardin=validated_data['jardin'])
-        
+
         if validated_data.get('garage') is not None:
             queryset = queryset.filter(garage=validated_data['garage'])
-        
+
         if validated_data.get('meuble') is not None:
             queryset = queryset.filter(meuble=validated_data['meuble'])
-        
+
         # Recherche par géolocalisation
         if validated_data.get('latitude') and validated_data.get('longitude'):
             point = Point(float(validated_data['longitude']), float(validated_data['latitude']))
             rayon = validated_data.get('rayon_km', 10) * 1000  # Conversion en mètres
-            
+
             # Filtrage par distance (nécessite l'extension PostGIS)
             queryset = queryset.filter(
                 latitude__isnull=False,
@@ -289,7 +289,7 @@ class RechercheMaisonSerializer(serializers.Serializer):
                     ) <= {rayon}
                 """]
             )
-        
+
         return queryset.filter(is_active=True)
 
 # =========================
@@ -307,12 +307,12 @@ class HotelPhotoSerializer(serializers.ModelSerializer):
 
 class HotelNoteSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.username', read_only=True)
-    
+
     class Meta:
         model = HotelNote
         fields = ['id', 'user', 'user_name', 'note', 'commentaire', 'date_creation']
         read_only_fields = ['user', 'date_creation']
-    
+
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
@@ -323,24 +323,24 @@ class HotelSerializer(serializers.ModelSerializer):
     note_moyenne = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
     notes_count = serializers.SerializerMethodField()
     owner_name = serializers.CharField(source='owner.username', read_only=True)
-    
+
     class Meta:
         model = Hotel
         fields = '__all__'
         read_only_fields = ['id', 'date_creation', 'note_moyenne', 'owner', 'is_active']
-    
+
     def get_notes_count(self, obj):
         return obj.notes.count()
-    
+
     def create(self, validated_data):
         request = self.context['request']
         validated_data['owner'] = request.user if request.user.is_authenticated else None
         validated_data['is_active'] = True
         hotel = Hotel.objects.create(**validated_data)
-        
+
         for index, photo in enumerate(request.FILES.getlist('photos')):
             HotelPhoto.objects.create(
-                hotel=hotel, 
+                hotel=hotel,
                 photos=photo,
                 ordre=index,
                 is_principale=(index == 0)
@@ -363,21 +363,21 @@ class ResidencePhotoSerializer(serializers.ModelSerializer):
 class ResidenceSerializer(serializers.ModelSerializer):
     photos = ResidencePhotoSerializer(many=True, read_only=True)
     owner_name = serializers.CharField(source='owner.username', read_only=True)
-    
+
     class Meta:
         model = Residence
         fields = '__all__'
         read_only_fields = ['id', 'date_creation', 'owner', 'is_active']
-    
+
     def create(self, validated_data):
         request = self.context['request']
         validated_data['owner'] = request.user if request.user.is_authenticated else None
         validated_data['is_active'] = True
         residence = Residence.objects.create(**validated_data)
-        
+
         for index, photo in enumerate(request.FILES.getlist('photos')):
             ResidencePhoto.objects.create(
-                residence=residence, 
+                residence=residence,
                 photos=photo,
                 ordre=index
             )
@@ -399,21 +399,21 @@ class ParcellePhotoSerializer(serializers.ModelSerializer):
 class ParcelleSerializer(serializers.ModelSerializer):
     photos = ParcellePhotoSerializer(many=True, read_only=True)
     owner_name = serializers.CharField(source='owner.username', read_only=True)
-    
+
     class Meta:
         model = Parcelle
         fields = '__all__'
         read_only_fields = ['id', 'date_creation', 'date_modification', 'owner', 'is_active']
-    
+
     def create(self, validated_data):
         request = self.context['request']
         validated_data['owner'] = request.user if request.user.is_authenticated else None
         validated_data['is_active'] = True
         parcelle = Parcelle.objects.create(**validated_data)
-        
+
         for index, photo in enumerate(request.FILES.getlist('photos')):
             ParcellePhoto.objects.create(
-                parcelle=parcelle, 
+                parcelle=parcelle,
                 photos=photo,
                 ordre=index
             )
@@ -473,12 +473,12 @@ class ContactSerializer(serializers.ModelSerializer):
 
 class DemandeVisiteSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.username', read_only=True)
-    
+
     class Meta:
         model = DemandeVisite
         fields = '__all__'
         read_only_fields = ['user', 'date_creation', 'date_modification']
-    
+
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
@@ -490,17 +490,17 @@ class MessageSerializer(serializers.ModelSerializer):
     sender_name = serializers.CharField(source="sender.username", read_only=True)
     receiver_name = serializers.CharField(source="receiver.username", read_only=True)
     sender_avatar = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Message
         fields = "__all__"
         read_only_fields = ['sender', 'created_at', 'is_read']
-    
+
     def get_sender_avatar(self, obj):
         if obj.sender.avatar:
             return obj.sender.avatar.url
         return None
-    
+
     def create(self, validated_data):
         validated_data['sender'] = self.context['request'].user
         return super().create(validated_data)

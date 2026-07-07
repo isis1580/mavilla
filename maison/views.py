@@ -635,7 +635,7 @@ def statistiques_globales(request):
 # RECHERCHE D'UTILISATEURS
 # =========================
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def search_users(request):
     """
     Recherche d'utilisateurs par username, email ou téléphone
