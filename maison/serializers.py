@@ -419,23 +419,36 @@ class ParcelleSerializer(serializers.ModelSerializer):
             )
         return parcelle
 
+
 # =========================
-# PUBLICITES
+# PUBLICITES (CORRIGÉ)
 # =========================
 class PubliciteSerializer(serializers.ModelSerializer):
+    # On utilise SerializerMethodField pour forcer l'URL absolue (comme PhotoSerializer)
+    photos = serializers.SerializerMethodField()
+
     class Meta:
         model = Publicite
         fields = '__all__'
+        # On met is_active en read_only pour qu'il ne soit pas écrasé par la requête
         read_only_fields = ['id', 'is_active', 'clic_count']
 
-    def create(self, validated_data):
-        validated_data['is_active'] = True
-        # Si plusieurs photos sont envoyées, on prend la première pour le modèle Publicite
-        request = self.context.get('request')
-        if request and request.FILES.getlist('photos'):
-            validated_data['photos'] = request.FILES.getlist('photos')[0]
-        return super().create(validated_data)
+    def get_photos(self, obj):
+        return absolute_url(self.context.get('request'), obj.photos)
 
+    def create(self, validated_data):
+        request = self.context.get('request')
+
+        # 1. Forcer l'activation ICI (indépendamment de ce que Flutter envoie)
+        validated_data['is_active'] = True
+
+        # 2. Récupérer la photo manuellement car Flutter l'envoie dans une liste 'photos'
+        if request and request.FILES:
+            file_list = request.FILES.getlist('photos')
+            if file_list:
+                validated_data['photos'] = file_list[0] # On prend la première photo
+
+        return super().create(validated_data)
 # =========================
 # PAYS
 # =========================

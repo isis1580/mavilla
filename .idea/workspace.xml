@@ -5,15 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="be9030b2-caba-43c5-844a-0a931c67742f" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/AssetManifest.bin" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/static/frontend/assets/AssetManifest.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/AssetManifest.bin.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/static/frontend/assets/AssetManifest.bin.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/fonts/MaterialIcons-Regular.otf" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/static/frontend/assets/fonts/MaterialIcons-Regular.otf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/flutter_bootstrap.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/static/frontend/flutter_bootstrap.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/flutter_service_worker.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/static/frontend/flutter_service_worker.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/main.dart.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/static/frontend/main.dart.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/maison/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/maison/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/maison/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/maison/serializers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
