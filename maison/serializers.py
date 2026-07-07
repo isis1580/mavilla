@@ -16,8 +16,14 @@ def absolute_url(request, filefield):
     if not filefield:
         return None
     try:
-        return filefield.url  # CloudinaryField fournit directement l'URL publique
-    except:
+        url = filefield.url
+        # Si Cloudinary renvoie un chemin relatif, on force l'URL absolue
+        if url.startswith('image/upload/') or url.startswith('video/upload/'):
+            from django.conf import settings
+            cloud_name = getattr(settings, 'CLOUDINARY_STORAGE', {}).get('CLOUD_NAME', 'dwg9lwgyt')
+            return f"https://res.cloudinary.com/{cloud_name}/{url}"
+        return url
+    except Exception:
         return None
 
 # -----------------------

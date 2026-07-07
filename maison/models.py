@@ -537,42 +537,50 @@ from django.dispatch import receiver
 @receiver(post_save, sender=Maison)
 def notifier_alertes_maison(sender, instance, created, **kwargs):
     if created and instance.is_active:
-        # Chercher les alertes qui correspondent
-        alertes = Alerte.objects.filter(
-            type_bien='maison',
-            type_transaction=instance.type_maison,
-            is_active=True
-        )
-        
-        # Filtre optionnel sur le prix
-        if instance.prix:
-            alertes = alertes.filter(Q(prix_max__gte=instance.prix) | Q(prix_max__isnull=True))
-
-        for alerte in alertes:
-            Notification.objects.create(
-                user=alerte.user,
-                title="🎯 Nouvelle maison trouvée !",
-                body=f"Une maison correspondant à vos critères vient d'être publiée à {instance.ville} ({instance.quartier}).",
-                type="system",
-                data={"route": f"/maison/{instance.id}"}
+        try:
+            # Chercher les alertes qui correspondent
+            alertes = Alerte.objects.filter(
+                type_bien='maison',
+                type_transaction=instance.type_maison,
+                is_active=True
             )
+
+            # Filtre optionnel sur le prix
+            if instance.prix:
+                alertes = alertes.filter(Q(prix_max__gte=instance.prix) | Q(prix_max__isnull=True))
+
+            for alerte in alertes:
+                Notification.objects.create(
+                    user=alerte.user,
+                    title="🎯 Nouvelle maison trouvée !",
+                    body=f"Une maison correspondant à vos critères vient d'être publiée à {instance.ville} ({instance.quartier}).",
+                    type="system",
+                    data={"route": f"/maison/{instance.id}"}
+                )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Erreur notification alerte maison: {e}")
 
 @receiver(post_save, sender=Parcelle)
 def notifier_alertes_parcelle(sender, instance, created, **kwargs):
     if created and instance.is_active:
-        alertes = Alerte.objects.filter(
-            type_bien='parcelle',
-            is_active=True
-        )
-        
-        if instance.prix:
-            alertes = alertes.filter(Q(prix_max__gte=instance.prix) | Q(prix_max__isnull=True))
-
-        for alerte in alertes:
-            Notification.objects.create(
-                user=alerte.user,
-                title="🌍 Nouveau terrain trouvé !",
-                body=f"Une parcelle de {instance.surface}m² est disponible à {instance.quartier}.",
-                type="system",
-                data={"route": f"/parcelle/{instance.id}"}
+        try:
+            alertes = Alerte.objects.filter(
+                type_bien='parcelle',
+                is_active=True
             )
+
+            if instance.prix:
+                alertes = alertes.filter(Q(prix_max__gte=instance.prix) | Q(prix_max__isnull=True))
+
+            for alerte in alertes:
+                Notification.objects.create(
+                    user=alerte.user,
+                    title="🌍 Nouveau terrain trouvé !",
+                    body=f"Une parcelle de {instance.surface}m² est disponible à {instance.quartier}.",
+                    type="system",
+                    data={"route": f"/parcelle/{instance.id}"}
+                )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Erreur notification alerte parcelle: {e}")
