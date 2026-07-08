@@ -180,6 +180,11 @@ def home(request):
 # =========================
 # AUTH
 # =========================
+class UserDetailView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [AllowAny]
+
 class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
 
@@ -537,6 +542,14 @@ class MessageViewSet(viewsets.ModelViewSet):
                 }
         
         return Response(list(conversations.values()))
+
+    @action(detail=False, methods=['POST'])
+    def mark_read(self, request):
+        user_id = request.data.get('user_id')
+        if user_id:
+            Message.objects.filter(sender_id=user_id, receiver=request.user, is_read=False).update(is_read=True)
+            return Response({'status': 'ok'})
+        return Response({'error': 'missing user_id'}, status=400)
 
     @action(detail=True, methods=['POST'])
     def marquer_lu(self, request, pk=None):

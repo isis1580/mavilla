@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/register/', UserRegistrationView.as_view(), name='register'),
     path('api/login/', UserLoginView.as_view(), name='login'),
     path('api/profile/', UserProfileView.as_view(), name='profile'),
+    path('api/users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
     path('api/search-users/', search_users, name='search-users'),
     path('api/liste_pays/', liste_pays, name='liste-pays'),
     path('api/detect_country/', detect_country, name='detect-country'),
