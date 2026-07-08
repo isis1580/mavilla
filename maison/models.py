@@ -530,6 +530,106 @@ class Alerte(models.Model):
         return f"Alerte {self.type_bien} - {self.user.username}"
 
 
+# =========================
+# GESTION SOCIÉTÉ (Médiations, Pros, Support)
+# =========================
+
+class Mediation(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'En attente'),
+        ('IN_PROGRESS', 'En cours d\'examen'),
+        ('RESOLVED', 'Résolu'),
+        ('REJECTED', 'Rejeté'),
+    ]
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mediations_sent')
+    opponent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mediations_received', null=True, blank=True)
+    subject = models.CharField(max_length=200)
+    description = models.TextField()
+    property_link = models.CharField(max_length=255, blank=True, help_text="ID ou Lien du bien concerné")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    admin_note = models.TextField(blank=True, help_text="Notes internes de la société")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Médiation {self.id} - {self.subject}"
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        old_status = None
+        if not is_new:
+            try:
+                old_status = Mediation.objects.get(pk=self.pk).status
+            except Mediation.DoesNotExist:
+                pass
+
+        super().save(*args, **kwargs)
+
+        # Si le statut a changé, notifier l'utilisateur
+        if not is_new and old_status != self.status:
+            Notification.objects.create(
+                user=self.requester,
+                title="Mise à jour de votre médiation",
+                body=f"Le statut de votre médiation '{self.subject}' est passé à : {self.get_status_display()}",
+                type="system"
+            )
+
+class ProfessionalRequest(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='professional_request')
+    company_name = models.CharField(max_length=200)
+    business_id = models.CharField(max_length=100, help_text="Numéro de registre du commerce")
+    document_id = CloudinaryField('auto', blank=True, null=True)
+    address = models.TextField()
+    is_approved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        was_approved = False
+        if not is_new:
+            try:
+                was_approved = ProfessionalRequest.objects.get(pk=self.pk).is_approved
+            except ProfessionalRequest.DoesNotExist:
+                pass
+
+        if self.is_approved:
+            self.user.is_verified = True
+            self.user.is_proprietaire = True
+            self.user.save(update_fields=['is_verified', 'is_proprietaire'])
+
+        super().save(*args, **kwargs)
+
+        # Notification si approuvé
+        if self.is_approved and not was_approved:
+            Notification.objects.create(
+                user=self.user,
+                title="Accès professionnel approuvé ! 🚀",
+                body=f"Félicitations {self.user.username}, votre compte a été vérifié. Vous pouvez maintenant publier des annonces professionnelles.",
+                type="system"
+            )
+
+    def __str__(self):
+        return f"Demande Pro - {self.company_name}"
+
+class SupportTicket(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.subject
+
+class AppReview(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)])
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Avis {self.rating}/5 - {self.user.username}"
 
 
 from django.db.models.signals import post_save

@@ -344,6 +344,37 @@ class AppVersionAdmin(admin.ModelAdmin):
     )
 
 # =========================
+# GESTION SOCIÉTÉ (Nouveaux)
+# =========================
+
+class MediationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'requester', 'subject', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('subject', 'description', 'requester__username')
+    list_editable = ('status',)
+
+class ProfessionalRequestAdmin(admin.ModelAdmin):
+    list_display = ('company_name', 'user', 'is_approved', 'created_at')
+    list_filter = ('is_approved',)
+    actions = ['approve_requests']
+
+    def approve_requests(self, request, queryset):
+        for req in queryset:
+            req.is_approved = True
+            req.save() # Le .save() gère la mise à jour de l'utilisateur
+        self.message_user(request, f"{queryset.count()} demandes approuvées.")
+    approve_requests.short_description = "Approuver les accès professionnels"
+
+class SupportTicketAdmin(admin.ModelAdmin):
+    list_display = ('subject', 'name', 'is_read', 'created_at')
+    list_filter = ('is_read',)
+    search_fields = ('subject', 'message', 'name', 'email')
+
+class AppReviewAdmin(admin.ModelAdmin):
+    list_display = ('user', 'rating', 'created_at')
+    list_filter = ('rating',)
+
+# =========================
 # Dashboard Admin Personnalisé
 # =========================
 class VillanaAdminSite(admin.AdminSite):
@@ -364,6 +395,8 @@ class VillanaAdminSite(admin.AdminSite):
             'nouveaux_utilisateurs': User.objects.filter(date_joined__date=aujourd_hui).count(),
             'demandes_contact': Contact.objects.filter(is_traite=False).count(),
             'commentaires_attente': Commentaire.objects.filter(is_approved=False).count(),
+            'mediations_attente': Mediation.objects.filter(status='PENDING').count(),
+            'demandes_pro_attente': ProfessionalRequest.objects.filter(is_approved=False).count(),
             'dernieres_maisons': Maison.objects.order_by('-date_creation')[:5],
         }
         
@@ -391,6 +424,10 @@ admin_site.register(Like)
 admin_site.register(DemandeVisite)
 admin_site.register(Statistique)
 admin_site.register(AppVersion, AppVersionAdmin)
+admin_site.register(Mediation, MediationAdmin)
+admin_site.register(ProfessionalRequest, ProfessionalRequestAdmin)
+admin_site.register(SupportTicket, SupportTicketAdmin)
+admin_site.register(AppReview, AppReviewAdmin)
 
 # Pour garder la compatibilité avec l'admin Django par défaut
 admin.site.register(User, UserAdmin)
@@ -409,3 +446,7 @@ admin.site.register(Like)
 admin.site.register(DemandeVisite)
 admin.site.register(Statistique)
 admin.site.register(AppVersion, AppVersionAdmin)
+admin.site.register(Mediation, MediationAdmin)
+admin.site.register(ProfessionalRequest, ProfessionalRequestAdmin)
+admin.site.register(SupportTicket, SupportTicketAdmin)
+admin.site.register(AppReview, AppReviewAdmin)
