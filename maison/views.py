@@ -12,27 +12,24 @@ from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 import logging
 import traceback
-from datetime import datetime, timedelta
+import os
+from django.conf import settings
+import firebase_admin
+from firebase_admin import credentials, messaging
 
-from .models import *
-from .serializers import *
-import traceback
-from django.http import JsonResponse
+# Initialisation de Firebase
+if not firebase_admin._apps:
+    try:
+        cert_path = os.path.join(settings.BASE_DIR, 'serviceAccountKey.json')
+        if os.path.exists(cert_path):
+            cred = credentials.Certificate(cert_path)
+            firebase_admin.initialize_app(cred)
+        else:
+            # Initialisation par défaut (utile si configuré via env vars GOOGLE_APPLICATION_CREDENTIALS)
+            firebase_admin.initialize_app()
+    except Exception as e:
+        print(f"⚠️ Firebase non initialisé: {e}")
 
-class SimpleDebugMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        return self.get_response(request)
-
-    def process_exception(self, request, exception):
-        error_trace = traceback.format_exc()
-        return JsonResponse({
-            'error': str(exception),
-            'type': type(exception).__name__,
-            'traceback': error_trace.split('\n')
-        }, status=500)
 logger = logging.getLogger(__name__)
 
 # =========================
@@ -699,3 +696,57 @@ class AlerteViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # L'utilisateur ne voit que ses propres alertes
         return Alerte.objects.filter(user=self.request.user)
+
+# =========================
+# NOTIFICATIONS PUSH & APPELS
+# =========================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def register_fcm_token(request):
+    """Enregistre le token FCM du téléphone pour les notifications push"""
+    fcm_token = request.data.get('fcm_token')
+    if not fcm_token:
+        return Response({'error': 'Token requis'}, status=400)
+
+    user = request.user
+    user.fcm_token = fcm_token
+    user.save(update_fields=['fcm_token'])
+    return Response({'status': 'token enregistré'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def initiate_call(request):
+    """Prévient le destinataire qu'un appel arrive via Firebase"""
+    receiver_id = request.data.get('receiver_id')
+    channel_name = request.data.get('channel_name')
+    is_video = request.data.get('is_video', True)
+
+    if not receiver_id or not channel_name:
+        return Response({'error': 'Paramètres manquants'}, status=400)
+
+    try:
+        receiver = User.objects.get(id=receiver_id)
+        if not receiver.fcm_token:
+             return Response({'error': 'Destinataire non disponible (pas de token)'}, status=404)
+
+        # Préparation du message Data (silencieux pour déclencher l'UI d'appel)
+        message = messaging.Message(
+            data={
+                'type': 'call',
+                'channelName': str(channel_name),
+                'callerName': str(request.user.username),
+                'callerAvatar': request.user.avatar.url if request.user.avatar else '',
+                'isVideo': str(is_video).lower(),
+                'callerId': str(request.user.id)
+            },
+            token=receiver.fcm_token,
+        )
+
+        response = messaging.send(message)
+        return Response({'status': 'appel envoyé', 'message_id': response})
+
+    except User.DoesNotExist:
+        return Response({'error': 'Utilisateur non trouvé'}, status=404)
+    except Exception as e:
+        logger.error(f"Erreur FCM: {traceback.format_exc()}")
+        return Response({'error': str(e)}, status=500)

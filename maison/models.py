@@ -47,6 +47,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     adresse = models.CharField(max_length=255, blank=True, null=True)
     ville = models.CharField(max_length=100, blank=True, null=True)
     pays = models.CharField(max_length=100, blank=True, null=True)
+    fcm_token = models.CharField(max_length=255, blank=True, null=True) # Pour les notifications push/appels
 
     date_joined = models.DateTimeField(auto_now_add=True)
 

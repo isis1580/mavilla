@@ -36,6 +36,8 @@ urlpatterns = [
     path('api/dashboard/', DashboardView.as_view(), name='dashboard'),
     path('api/statistiques-globales/', statistiques_globales, name='statistiques-globales'),
     path('api/app-version/latest/', get_latest_version, name='latest-version'),
+    path('api/register-fcm/', register_fcm_token, name='register-fcm'),
+    path('api/initiate-call/', initiate_call, name='initiate-call'),
     path('api/', include(router.urls)),
     
     # ✅ FRONTEND
