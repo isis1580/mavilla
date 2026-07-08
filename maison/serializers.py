@@ -325,14 +325,20 @@ class HotelSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
     is_favori = serializers.SerializerMethodField()
     owner_name = serializers.SerializerMethodField()
+    owner_avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = Hotel
         fields = '__all__'
-        read_only_fields = ['id', 'date_creation', 'note_moyenne', 'owner', 'is_active']
+        read_only_fields = ['id', 'date_creation', 'note_moyenne', 'owner', 'owner_name', 'owner_avatar', 'is_active']
 
     def get_owner_name(self, obj):
         return obj.owner.username if obj.owner else "Anonyme"
+
+    def get_owner_avatar(self, obj):
+        if obj.owner and obj.owner.avatar:
+            return obj.owner.avatar.url
+        return None
 
     def get_commentaires_count(self, obj):
         return obj.commentaires.count()
@@ -388,14 +394,20 @@ class ResidenceSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
     is_favori = serializers.SerializerMethodField()
     owner_name = serializers.SerializerMethodField()
+    owner_avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = Residence
         fields = '__all__'
-        read_only_fields = ['id', 'date_creation', 'owner', 'is_active']
+        read_only_fields = ['id', 'date_creation', 'owner', 'owner_name', 'owner_avatar', 'is_active']
 
     def get_owner_name(self, obj):
         return obj.owner.username if obj.owner else "Anonyme"
+
+    def get_owner_avatar(self, obj):
+        if obj.owner and obj.owner.avatar:
+            return obj.owner.avatar.url
+        return None
 
     def get_commentaires_count(self, obj):
         return obj.commentaires.count()
@@ -450,14 +462,20 @@ class ParcelleSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
     is_favori = serializers.SerializerMethodField()
     owner_name = serializers.SerializerMethodField()
+    owner_avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = Parcelle
         fields = '__all__'
-        read_only_fields = ['id', 'date_creation', 'date_modification', 'owner', 'is_active']
+        read_only_fields = ['id', 'date_creation', 'date_modification', 'owner', 'owner_name', 'owner_avatar', 'is_active']
 
     def get_owner_name(self, obj):
         return obj.owner.username if obj.owner else "Anonyme"
+
+    def get_owner_avatar(self, obj):
+        if obj.owner and obj.owner.avatar:
+            return obj.owner.avatar.url
+        return None
 
     def get_commentaires_count(self, obj):
         return obj.commentaires.count()
