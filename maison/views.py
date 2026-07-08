@@ -194,8 +194,7 @@ class UserRegistrationView(APIView):
                     "id": user.id,
                     "username": user.username,
                     "phone_number": user.phone_number,
-                    "email": user.email,
-                    "is_proprietaire": user.is_proprietaire
+                    "email": user.email
                 }
             }, status=status.HTTP_201_CREATED)
         

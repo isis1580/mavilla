@@ -180,7 +180,7 @@ class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('username', 'phone_number', 'email', 'password1', 'password2', 
-                 'is_active', 'is_staff', 'is_proprietaire', 'is_verified')
+                 'is_active', 'is_staff', 'is_verified')
     
     # Optionnel : ajouter des widgets pour améliorer l'affichage
     def __init__(self, *args, **kwargs):
@@ -194,10 +194,10 @@ class UserAdmin(BaseUserAdmin):
 
     model = User
 
-    list_display = ('username', 'phone_number', 'email', 'is_proprietaire',
+    list_display = ('username', 'phone_number', 'email',
                     'is_verified', 'is_active', 'is_staff', 'date_joined')
 
-    list_filter = ('is_proprietaire', 'is_verified', 'is_active', 'is_staff')
+    list_filter = ('is_verified', 'is_active', 'is_staff')
 
     search_fields = ('username', 'phone_number', 'email')
     ordering = ('phone_number',)
@@ -211,7 +211,7 @@ class UserAdmin(BaseUserAdmin):
         }),
         ('Permissions', {
             'fields': ('is_active', 'is_staff', 'is_superuser',
-                       'is_proprietaire', 'is_verified',
+                       'is_verified',
                        'groups', 'user_permissions')
         }),
         ('Dates importantes', {
@@ -225,7 +225,7 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('phone_number', 'username', 'email',
                        'password1', 'password2',
                        'is_active', 'is_staff',
-                       'is_proprietaire', 'is_verified')
+                       'is_verified')
         }),
     )
 # =========================

@@ -35,7 +35,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'phone_number', 'email', 'password', 'avatar', 'is_proprietaire']
+        fields = ['username', 'phone_number', 'email', 'password', 'avatar']
 
     def create(self, validated_data):
         logger.error(f"🔍 CRÉATION UTILISATEUR: {validated_data}")  # ← CHANGÉ
@@ -44,8 +44,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             username=validated_data['username'],
             email=validated_data.get('email'),
             password=validated_data['password'],
-            avatar=validated_data.get('avatar'),
-            is_proprietaire=validated_data.get('is_proprietaire', False)
+            avatar=validated_data.get('avatar')
         )
 
 class UserLoginSerializer(serializers.Serializer):
@@ -74,7 +73,6 @@ class UserLoginSerializer(serializers.Serializer):
                 'phone_number': user.phone_number,
                 'email': user.email,
                 'avatar': user.avatar.url if user.avatar else None,
-                'is_proprietaire': user.is_proprietaire,
                 'is_verified': user.is_verified
             }
         }
@@ -83,7 +81,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'phone_number', 'email', 'avatar',
-                 'is_proprietaire', 'is_verified', 'bio', 'adresse', 'ville', 'pays', 'date_joined']
+                 'is_verified', 'bio', 'adresse', 'ville', 'pays', 'date_joined']
         read_only_fields = ['date_joined']
 
 # =========================

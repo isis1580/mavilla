@@ -39,7 +39,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     avatar = CloudinaryField('image', blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    is_proprietaire = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
 
     # Nouveaux champs pour le profil complet
@@ -593,8 +592,7 @@ class ProfessionalRequest(models.Model):
 
         if self.is_approved:
             self.user.is_verified = True
-            self.user.is_proprietaire = True
-            self.user.save(update_fields=['is_verified', 'is_proprietaire'])
+            self.user.save(update_fields=['is_verified'])
 
         super().save(*args, **kwargs)
 
