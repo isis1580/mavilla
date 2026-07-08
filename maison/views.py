@@ -32,6 +32,9 @@ if not firebase_admin._apps:
 
 logger = logging.getLogger(__name__)
 
+from .models import *
+from .serializers import *
+
 # =========================
 # MIXINS
 # =========================
