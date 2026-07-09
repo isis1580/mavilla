@@ -594,8 +594,6 @@ class MessageSerializer(serializers.ModelSerializer):
     sender_name = serializers.CharField(source="sender.username", read_only=True)
     receiver_name = serializers.CharField(source="receiver.username", read_only=True)
     sender_avatar = serializers.SerializerMethodField()
-    image = serializers.SerializerMethodField()
-    file = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
@@ -607,11 +605,14 @@ class MessageSerializer(serializers.ModelSerializer):
             return obj.sender.avatar.url
         return None
 
-    def get_image(self, obj):
-        return absolute_url(self.context.get('request'), obj.image)
-
-    def get_file(self, obj):
-        return absolute_url(self.context.get('request'), obj.file)
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        # On s'assure que l'image et le fichier renvoient des URLs absolues dans le JSON
+        if instance.image:
+            ret['image'] = absolute_url(self.context.get('request'), instance.image)
+        if instance.file:
+            ret['file'] = absolute_url(self.context.get('request'), instance.file)
+        return ret
 
     def create(self, validated_data):
         validated_data['sender'] = self.context['request'].user
