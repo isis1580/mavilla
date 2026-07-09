@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'maison',  # ton app principale
+    'frontend',
 ]
 
 # =========================
