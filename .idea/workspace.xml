@@ -4,7 +4,66 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="be9030b2-caba-43c5-844a-0a931c67742f" name="Changes" comment="" />
+    <list default="true" id="be9030b2-caba-43c5-844a-0a931c67742f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/.last_build_id" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/AssetManifest.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/AssetManifest.bin.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/FontManifest.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/NOTICES" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/assets/Villana.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/assets/adaptive-icon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/assets/favicon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/assets/google_logo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/assets/icon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/assets/niger.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/assets/placeholder.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/assets/profil.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/assets/splash.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/assets/vicon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/assets/viconcol.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/assets/villanaicon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/config/config.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/fonts/MaterialIcons-Regular.otf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/packages/font_awesome_flutter/lib/fonts/Font-Awesome-7-Brands-Regular-400.otf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/packages/font_awesome_flutter/lib/fonts/Font-Awesome-7-Free-Regular-400.otf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/packages/font_awesome_flutter/lib/fonts/Font-Awesome-7-Free-Solid-900.otf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/shaders/ink_sparkle.frag" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/assets/shaders/stretch_effect.frag" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/canvaskit.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/canvaskit.js.symbols" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/canvaskit.wasm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/chromium/canvaskit.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/chromium/canvaskit.js.symbols" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/chromium/canvaskit.wasm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/experimental_webparagraph/canvaskit.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/experimental_webparagraph/canvaskit.js.symbols" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/experimental_webparagraph/canvaskit.wasm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/skwasm.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/skwasm.js.symbols" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/skwasm.wasm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/skwasm_heavy.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/skwasm_heavy.js.symbols" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/skwasm_heavy.wasm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/wimp.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/wimp.js.symbols" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/canvaskit/wimp.wasm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/favicon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/flutter.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/flutter_bootstrap.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/flutter_service_worker.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/icons/Icon-192.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/icons/Icon-512.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/icons/Icon-maskable-192.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/icons/Icon-maskable-512.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/main.dart.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/manifest.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/static/frontend/version.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/templates/frontend/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/views.py" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -25,22 +84,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "main",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/itsupport.niamey/Desktop/projet/villana-backend",
-    "show.migrate.to.gradle.popup": "false"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/itsupport.niamey/Desktop/projet/villana-backend&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
   }
-}]]></component>
+}</component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="be9030b2-caba-43c5-844a-0a931c67742f" name="Changes" comment="" />
