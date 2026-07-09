@@ -463,6 +463,15 @@ class ContactViewSet(viewsets.ModelViewSet):
         else:
             serializer.save()
 
+    @action(detail=False, methods=['POST'])
+    def send(self, request):
+        """Action pour correspondre à l'endpoint /api/contacts/send/"""
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class DemandeVisiteViewSet(viewsets.ModelViewSet):
     serializer_class = DemandeVisiteSerializer
     permission_classes = [IsAuthenticated]
@@ -766,3 +775,68 @@ def initiate_call(request):
     except Exception as e:
         logger.error(f"Erreur FCM: {traceback.format_exc()}")
         return Response({'error': str(e)}, status=500)
+
+
+# =========================
+# GESTION SOCIÉTÉ (Nouveaux ViewSets)
+# =========================
+
+class MediationViewSet(viewsets.ModelViewSet):
+    serializer_class = MediationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Mediation.objects.all()
+        return Mediation.objects.filter(requester=user)
+
+    def perform_create(self, serializer):
+        serializer.save(requester=self.request.user)
+
+class ProfessionalRequestViewSet(viewsets.ModelViewSet):
+    serializer_class = ProfessionalRequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return ProfessionalRequest.objects.all()
+        return ProfessionalRequest.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        # On vérifie s'il existe déjà une demande pour cet utilisateur
+        if ProfessionalRequest.objects.filter(user=self.request.user).exists():
+            raise serializers.ValidationError("Vous avez déjà une demande en cours.")
+        serializer.save(user=self.request.user)
+
+class SupportTicketViewSet(viewsets.ModelViewSet):
+    serializer_class = SupportTicketSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated:
+            if user.is_staff:
+                return SupportTicket.objects.all()
+            return SupportTicket.objects.filter(user=user)
+        return SupportTicket.objects.none()
+
+    def perform_create(self, serializer):
+        if self.request.user.is_authenticated:
+            serializer.save(user=self.request.user)
+        else:
+            serializer.save()
+
+class AppReviewViewSet(viewsets.ModelViewSet):
+    queryset = AppReview.objects.all().order_by('-created_at')
+    serializer_class = AppReviewSerializer
+    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

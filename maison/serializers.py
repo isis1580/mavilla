@@ -647,3 +647,44 @@ class AlerteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
+
+# =========================
+# GESTION SOCIÉTÉ
+# =========================
+
+class MediationSerializer(serializers.ModelSerializer):
+    requester_name = serializers.CharField(source='requester.username', read_only=True)
+    opponent_name = serializers.CharField(source='opponent.username', read_only=True, allow_null=True)
+
+    class Meta:
+        model = Mediation
+        fields = '__all__'
+        read_only_fields = ['requester', 'status', 'admin_note', 'created_at']
+
+class ProfessionalRequestSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = ProfessionalRequest
+        fields = '__all__'
+        read_only_fields = ['user', 'is_approved', 'created_at']
+
+class SupportTicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportTicket
+        fields = '__all__'
+        read_only_fields = ['user', 'is_read', 'created_at']
+
+class AppReviewSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.username', read_only=True)
+    user_avatar = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AppReview
+        fields = '__all__'
+        read_only_fields = ['user', 'created_at']
+
+    def get_user_avatar(self, obj):
+        if obj.user.avatar:
+            return obj.user.avatar.url
+        return None
