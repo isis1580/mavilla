@@ -73,7 +73,8 @@ class UserLoginSerializer(serializers.Serializer):
                 'phone_number': user.phone_number,
                 'email': user.email,
                 'avatar': user.avatar.url if user.avatar else None,
-                'is_verified': user.is_verified
+                'is_verified': user.is_verified,
+                'is_staff': user.is_staff
             }
         }
 
@@ -81,7 +82,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'phone_number', 'email', 'avatar',
-                 'is_verified', 'bio', 'adresse', 'ville', 'pays', 'date_joined']
+                 'is_verified', 'is_staff', 'bio', 'adresse', 'ville', 'pays', 'date_joined']
         read_only_fields = ['date_joined']
 
 # =========================
