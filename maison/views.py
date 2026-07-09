@@ -121,6 +121,11 @@ class PropertyActionMixin:
         serializer = CommentaireSerializer(commentaire)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated], url_path='noter')
+    def noter(self, request, pk=None):
+        """Alias pour commenter (utilisé par Flutter)"""
+        return self.commenter(request, pk)
+
     @action(detail=True, methods=['GET'], permission_classes=[AllowAny])
     def commentaires(self, request, pk=None):
         obj = self.get_object()
@@ -132,6 +137,11 @@ class PropertyActionMixin:
         ).order_by('-date_creation')
         serializer = CommentaireSerializer(commentaires, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['GET'], permission_classes=[AllowAny], url_path='notes')
+    def notes(self, request, pk=None):
+        """Alias pour commentaires (utilisé par Flutter)"""
+        return self.commentaires(request, pk)
 
     @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
     def mes_favoris(self, request):
