@@ -496,6 +496,28 @@ class DemandeVisiteViewSet(viewsets.ModelViewSet):
             data={"bien_type": bien_type, "bien_id": str(bien_id)}
         )
 
+class ReservationViewSet(viewsets.ModelViewSet):
+    serializer_class = ReservationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Reservation.objects.all().order_by('-created_at')
+        return Reservation.objects.filter(user=user).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        reservation = serializer.save(user=self.request.user)
+
+        # Notification de confirmation à l'utilisateur
+        Notification.objects.create(
+            user=self.request.user,
+            title="Réservation enregistrée",
+            body=f"Votre demande de réservation pour un(e) {reservation.bien_type} a bien été reçue.",
+            type="reservation",
+            data={"reservation_id": str(reservation.id)}
+        )
+
 # =========================
 # MESSAGES
 # =========================

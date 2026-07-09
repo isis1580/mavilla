@@ -15,6 +15,7 @@ router.register(r'publicites', PubliciteViewSet, basename='publicite')
 router.register(r'contacts', ContactViewSet, basename='contact')
 router.register(r'demandes-visite', DemandeVisiteViewSet, basename='demandevisite')
 router.register(r'visites', DemandeVisiteViewSet, basename='visite') # Alias pour Flutter
+router.register(r'reservations', ReservationViewSet, basename='reservation')
 router.register(r'evaluations', AppReviewViewSet, basename='evaluation')
 router.register(r'mediations', MediationViewSet, basename='mediation')
 router.register(r'professionals', ProfessionalRequestViewSet, basename='professional')

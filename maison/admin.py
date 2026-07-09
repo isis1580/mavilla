@@ -174,6 +174,16 @@ class ResidenceAdmin(admin.ModelAdmin):
     inlines = [ResidencePhotoInline, CommentaireInline, LikeInline, FavoriInline]
 
 # =========================
+# Admin pour Réservation
+# =========================
+class ReservationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'bien_type', 'status', 'date_debut', 'date_fin', 'created_at')
+    list_filter = ('status', 'bien_type', 'created_at')
+    search_fields = ('user__username', 'bien_type')
+    readonly_fields = ('created_at',)
+    list_editable = ('status',)
+
+# =========================
 # Admin pour User personnalisé
 # =========================
 class CustomUserCreationForm(UserCreationForm):
@@ -422,6 +432,7 @@ admin_site.register(Message, MessageAdmin)
 admin_site.register(Favori)
 admin_site.register(Like)
 admin_site.register(DemandeVisite)
+admin_site.register(Reservation, ReservationAdmin)
 admin_site.register(Statistique)
 admin_site.register(AppVersion, AppVersionAdmin)
 admin_site.register(Mediation, MediationAdmin)
@@ -444,6 +455,7 @@ admin.site.register(Message, MessageAdmin)
 admin.site.register(Favori)
 admin.site.register(Like)
 admin.site.register(DemandeVisite)
+admin.site.register(Reservation, ReservationAdmin)
 admin.site.register(Statistique)
 admin.site.register(AppVersion, AppVersionAdmin)
 admin.site.register(Mediation, MediationAdmin)
